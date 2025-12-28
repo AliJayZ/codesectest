@@ -266,7 +266,7 @@ encryptBtn.onclick = async ()=>{
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = filename;
+    a.download = codesec;
     document.body.appendChild(a);
     a.click();
     setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},300);
@@ -298,4 +298,5 @@ fileInput.onchange = async ()=>{
 };
 </script>
 </body>
+
 </html>
