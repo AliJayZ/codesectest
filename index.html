@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Secure Vault</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html, body {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar{width:0;height:0;}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:#0b0e17;
+  font-family:Tahoma,sans-serif;
+  color:#fff;
+}
+
+.container{
+  max-width:720px;
+  margin:auto;
+  padding:20px;
+}
+
+.card{
+  background:rgba(255,255,255,0.1);
+  backdrop-filter:blur(18px);
+  border-radius:20px;
+  padding:20px;
+}
+
+h2{
+  text-align:center;
+  margin-bottom:20px;
+}
+
+.field{
+  position:relative;
+  margin-bottom:18px;
+}
+
+textarea,input{
+  width:100%;
+  border:none;
+  border-radius:14px;
+  padding:14px 44px 14px 14px;
+  background:rgba(0,0,0,.35);
+  color:#fff;
+  font-size:14px;
+}
+
+textarea{
+  min-height:140px;
+  resize:none;
+  font-family:Consolas,monospace;
+}
+
+.eye{
+  position:absolute;
+  left:12px;
+  top:50%;
+  transform:translateY(-50%);
+  cursor:pointer;
+  font-size:18px;
+  opacity:.8;
+}
+
+.buttons{
+  display:flex;
+  gap:14px;
+  margin:24px 0;
+}
+
+button{
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:16px;
+  font-size:15px;
+  font-weight:bold;
+  color:#fff;
+}
+
+#encryptBtn{ background:#4cc2ff; }
+#decryptBtn{ background:#ff4c4c; }
+
+/* بخش جدید: انتخاب فرمت فایل */
+.format-selector {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin: 20px 0;
+  font-size: 14px;
+}
+
+.format-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.format-option input[type="radio"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #555;
+  border-radius: 50%;
+  display: grid;
+  place-content: center;
+  transition: all 0.3s;
+}
+
+.format-option input[type="radio"]:checked {
+  border-color: #4cc2ff;
+}
+
+.format-option input[type="radio"]::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transform: scale(0);
+  transition: 0.2s transform ease;
+  background-color: #4cc2ff;
+  box-shadow: inset 12px 12px #4cc2ff;
+}
+
+.format-option input[type="radio"]:checked::before {
+  transform: scale(1);
+}
+
+#output{ margin-top:10px; }
+
+footer{
+  margin-top:16px;
+  text-align:center;
+  font-size:12px;
+  opacity:.6;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+  <div class="card">
+    <h2>Secure Vault</h2>
+
+    <div class="field">
+      <textarea id="plainText" placeholder="متن محرمانه"></textarea>
+      <span class="eye" id="togglePlain">👁</span>
+    </div>
+
+    <!-- بخش جدید: انتخاب فرمت دانلود -->
+    <div class="format-selector">
+      <label class="format-option">
+        <input type="radio" name="fileFormat" value="txt" checked>
+        <span>.txt</span>
+      </label>
+
+      <label class="format-option">
+        <input type="radio" name="fileFormat" value="enc">
+        <span>.enc</span>
+      </label>
+    </div>
+
+    <div class="field">
+      <input id="password" type="password" placeholder="رمز عبور">
+      <span class="eye" id="togglePass">👁</span>
+    </div>
+
+    <div class="buttons">
+      <button id="encryptBtn">Encrypt</button>
+      <button id="decryptBtn">Decrypt</button>
+    </div>
+
+    <div class="field">
+      <textarea id="output" placeholder="خروجی" readonly></textarea>
+    </div>
+
+    <input id="fileInput" type="file" accept=".txt,.enc" hidden>
+
+    <footer>AES-256-GCM • PBKDF2</footer>
+  </div>
+</div>
+
+<script>
+const enc = new TextEncoder();
+const dec = new TextDecoder();
+
+const plainText = document.getElementById("plainText");
+const password  = document.getElementById("password");
+const output    = document.getElementById("output");
+const fileInput = document.getElementById("fileInput");
+
+const encryptBtn = document.getElementById("encryptBtn");
+const decryptBtn = document.getElementById("decryptBtn");
+
+let plainVisible = true;
+let passVisible  = false;
+
+/* چشم‌ها */
+document.getElementById("togglePlain").onclick = ()=>{
+  plainVisible = !plainVisible;
+  plainText.style.webkitTextSecurity = plainVisible ? "none" : "disc";
+};
+
+document.getElementById("togglePass").onclick = ()=>{
+  passVisible = !passVisible;
+  password.type = passVisible ? "text" : "password";
+};
+
+/* crypto */
+async function deriveKey(pass,salt){
+  const base = await crypto.subtle.importKey("raw",enc.encode(pass),"PBKDF2",false,["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    {name:"PBKDF2",salt,iterations:200000,hash:"SHA-256"},
+    base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]
+  );
+}
+
+async function encrypt(text,pass){
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv   = crypto.getRandomValues(new Uint8Array(12));
+  const key  = await deriveKey(pass,salt);
+  const cipher = await crypto.subtle.encrypt({name:"AES-GCM",iv},key,enc.encode(text));
+  return btoa(String.fromCharCode(...salt,...iv,...new Uint8Array(cipher)));
+}
+
+async function decrypt(data,pass){
+  const raw = Uint8Array.from(atob(data),c=>c.charCodeAt(0));
+  const salt = raw.slice(0,16);
+  const iv   = raw.slice(16,28);
+  const ct   = raw.slice(28);
+  const key  = await deriveKey(pass,salt);
+  const plain = await crypto.subtle.decrypt({name:"AES-GCM",iv},key,ct);
+  return dec.decode(plain);
+}
+
+/* دکمه‌ها */
+encryptBtn.onclick = async ()=>{
+  if(!password.value){
+    alert("رمز وارد نشده");
+    return;
+  }
+  try{
+    const result = await encrypt(plainText.value,password.value);
+    output.value = result;
+
+    // انتخاب فرمت از radio button
+    const format = document.querySelector('input[name="fileFormat"]:checked').value;
+    const extension = format === "enc" ? "enc" : "txt";
+    const filename = `secure.${extension}`;
+
+    const blob = new Blob([result],{type:"text/plain"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},300);
+
+    plainText.value = "";
+    password.value  = "";
+  }catch(e){
+    alert("خطا در رمزگذاری");
+  }
+};
+
+decryptBtn.onclick = ()=>{
+  if(!password.value){
+    alert("رمز وارد نشده");
+    return;
+  }
+  fileInput.click();
+};
+
+fileInput.onchange = async ()=>{
+  if(!fileInput.files[0]) return;
+  try{
+    const text = await fileInput.files[0].text();
+    output.value = await decrypt(text,password.value);
+  }catch(e){
+    alert("رمز اشتباه است یا فایل خراب است");
+  }
+  fileInput.value = "";
+};
+</script>
+</body>
+</html>
