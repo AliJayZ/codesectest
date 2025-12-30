@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>CodeSec - Secure Messenger</title>
+<style>
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { overflow-y: auto; overflow-x: hidden; }
+::-webkit-scrollbar { width:0; height:0; }
+body {
+  margin:0;
+  min-height:100vh;
+  background:#0b0e17;
+  font-family:Tahoma,sans-serif;
+  color:#fff;
+}
+.container { max-width:720px; margin:auto; padding:20px; }
+.card {
+  background:rgba(255,255,255,0.1);
+  backdrop-filter:blur(18px);
+  border-radius:20px;
+  padding:20px;
+}
+h2 { text-align:center; margin-bottom:20px; }
+.field {
+  margin-bottom:18px;
+}
+textarea, input {
+  width:100%;
+  border:none;
+  border-radius:14px;
+  padding:14px;
+  background:rgba(0,0,0,.35);
+  color:#fff;
+  font-size:14px;
+}
+textarea {
+  min-height:140px;
+  resize:none;
+  font-family:Consolas,monospace;
+}
+/* دکمه‌های Liquid Metal (Paste, Copy, چشم) */
+.liquid-btn, .action-btn {
+  background:linear-gradient(145deg, #2a2f3f, #1a1d28);
+  border:none;
+  border-radius:50%;
+  box-shadow:
+    0 6px 20px rgba(0,0,0,0.6),
+    inset 0 3px 12px rgba(255,255,255,0.15),
+    inset 0 -3px 12px rgba(0,0,0,0.4);
+  cursor:pointer;
+  color:#fff;
+  transition: all 0.3s ease;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  animation: pulse 4s infinite ease-in-out;
+}
+.liquid-btn:hover, .action-btn:hover,
+.liquid-btn:active, .action-btn:active {
+  transform:scale(1.15);
+  background:linear-gradient(145deg, #3a4055, #252a38);
+  box-shadow:
+    0 10px 30px rgba(76,194,255,0.5),
+    inset 0 4px 15px rgba(76,194,255,0.3);
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 6px 20px rgba(0,0,0,0.6), inset 0 3px 12px rgba(255,255,255,0.15); }
+  50% { box-shadow: 0 8px 25px rgba(76,194,255,0.2), inset 0 4px 15px rgba(255,255,255,0.2); }
+}
+.action-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 16px 0;
+}
+.action-btn {
+  width:80px;
+  height:80px;
+  font-size:20px;
+  font-weight:bold;
+}
+.eye-group {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+.liquid-btn {
+  width:50px;
+  height:50px;
+  font-size:24px;
+}
+/* رادیو باتن‌های ساده و دایره‌ای */
+.mode-selector {
+  display: flex;
+  justify-content: center;
+  gap: 50px;
+  margin: 20px 0;
+  font-size: 15px;
+}
+.mode-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.mode-option input[type="radio"] {
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border: 3px solid #555;
+  border-radius: 50%;
+  background: transparent;
+  position: relative;
+  transition: all 0.3s;
+}
+.mode-option input[type="radio"]:checked {
+  border-color: #4cc2ff;
+}
+.mode-option input[type="radio"]::before {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #4cc2ff;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.3s;
+}
+.mode-option input[type="radio"]:checked::before {
+  transform: translate(-50%, -50%) scale(1);
+}
+.buttons {
+  display:flex;
+  gap:14px;
+  margin:24px 0;
+}
+button {
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:16px;
+  font-size:15px;
+  font-weight:bold;
+  color:#fff;
+  background:#4cc2ff;
+}
+#decryptBtn {
+  background:#ff4c4c;
+}
+.help {
+  margin-top: 30px;
+  padding: 16px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 16px;
+  font-size: 13px;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+.help h3 { text-align: center; margin: 12px 0 8px; }
+footer {
+  margin-top:16px;
+  text-align:center;
+  font-size:12px;
+  opacity:.6;
+}
+.note.warning {
+  color:#ff4444;
+  border:1px solid #ff4444;
+  background:rgba(255,68,68,0.1);
+  padding:12px;
+  border-radius:12px;
+  margin-top:10px;
+  font-size:13px;
+}
+.note.success { color:#50fa7b; }
+/* منوی همبرگری */
+.hamburger {
+  position:fixed;
+  top:20px;
+  right:20px;
+  z-index:1000;
+  width:50px;
+  height:50px;
+  background:linear-gradient(145deg, #2a2f3f, #1a1d28);
+  border-radius:50%;
+  box-shadow:0 6px 20px rgba(0,0,0,0.6);
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:5px;
+}
+.hamburger span {
+  width:24px;
+  height:3px;
+  background:#fff;
+  border-radius:3px;
+  transition:all 0.3s;
+}
+.hamburger.active span:nth-child(1) { transform:rotate(45deg) translate(6px,6px); }
+.hamburger.active span:nth-child(2) { opacity:0; }
+.hamburger.active span:nth-child(3) { transform:rotate(-45deg) translate(6px,-6px); }
+.sidebar {
+  position:fixed;
+  top:0;
+  right:-300px;
+  width:280px;
+  height:100%;
+  background:rgba(10,13,23,0.95);
+  backdrop-filter:blur(20px);
+  z-index:999;
+  transition:right 0.4s ease;
+  padding:80px 20px 20px;
+}
+.sidebar.active { right:0; }
+.sidebar-item {
+  padding:16px;
+  margin:8px 0;
+  background:rgba(255,255,255,0.05);
+  border-radius:16px;
+  cursor:pointer;
+  font-size:16px;
+}
+.sidebar-item:hover { background:rgba(76,194,255,0.2); }
+.page { display:none; }
+.page.active { display:block; }
+/* صفحه چت */
+.chat-messages {
+  height:55vh;
+  overflow-y:auto;
+  margin:20px 0;
+  padding:10px;
+}
+.message {
+  max-width:75%;
+  margin:8px 0;
+  padding:12px;
+  border-radius:18px;
+  background:rgba(255,255,255,0.1);
+}
+.message.sent { margin-left:auto; background:#4cc2ff; }
+.message.received { margin-right:auto; background:rgba(255,255,255,0.15); }
+.message-user { font-size:12px; opacity:0.8; margin-bottom:4px; }
+.request-message {
+  background:rgba(255,255,0,0.1);
+  border:1px solid #ffff00;
+  text-align:center;
+  padding:15px;
+}
+.request-buttons {
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+.request-buttons button {
+  flex:1;
+  padding:10px;
+  font-size:14px;
+}
+</style>
+</head>
+<body>
+
+<!-- منوی همبرگری -->
+<div class="hamburger" id="hamburger">
+  <span></span>
+  <span></span>
+  <span></span>
+</div>
+
+<!-- سایدبار -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item" data-page="home">🏠 خانه (ابزار رمزنگاری)</div>
+  <div class="sidebar-item" data-page="create-room">➕ ساخت روم جدید</div>
+  <div class="sidebar-item" data-page="join-room">🔑 ورود به روم</div>
+  <div class="sidebar-item" data-page="room-settings-page" id="roomSettingsMenu" style="display:none;">⚙️ تنظیمات روم</div>
+  <div class="sidebar-item" data-page="username-page" id="usernameMenuItem">👤 تنظیم نام کاربری</div>
+</div>
+
+<div class="container">
+
+  <!-- صفحه خانه -->
+  <div class="card page active" id="home">
+    <h2>Secure Vault</h2>
+    <div class="action-group">
+      <button class="action-btn" id="pasteBtn">Paste<br>📄</button>
+    </div>
+    <div class="eye-group">
+      <button class="liquid-btn" id="togglePlain">👁</button>
+    </div>
+    <div class="field">
+      <textarea id="plainText" placeholder="متن محرمانه را اینجا بنویسید یا پیست کنید"></textarea>
+    </div>
+    <div class="mode-selector">
+      <label class="mode-option">
+        <input type="radio" name="appMode" value="file" checked>
+        <span>File</span>
+      </label>
+      <label class="mode-option">
+        <input type="radio" name="appMode" value="copy">
+        <span>Copy/Paste</span>
+      </label>
+    </div>
+    <div class="eye-group">
+      <button class="liquid-btn" id="togglePass">👁</button>
+    </div>
+    <div class="field">
+      <input id="password" type="password" placeholder="رمز عبور">
+    </div>
+    <div class="buttons">
+      <button id="encryptBtn">Encrypt</button>
+      <button id="decryptBtn">Decrypt</button>
+    </div>
+    <div class="field">
+      <textarea id="output" placeholder="خروجی اینجا نمایش داده می‌شود" readonly></textarea>
+    </div>
+    <div class="action-group">
+      <button class="action-btn" id="copyBtn">Copy<br>📋</button>
+    </div>
+    <input id="fileInput" type="file" accept=".txt,.enc" hidden>
+    <div class="help">
+      <h3>📖 راهنما</h3>
+      <p><strong>File Mode:</strong> فایل دانلود/آپلود می‌شود</p>
+      <p><strong>Copy/Paste Mode:</strong> توصیه شده برای گوشی</p>
+      <p>اگر دکمه Paste کار نکرد: داخل باکس Long Press → Paste</p>
+    </div>
+    <footer>AES-256-GCM • PBKDF2 • 100% Client-Side</footer>
+  </div>
+
+  <!-- صفحه تنظیم نام کاربری -->
+  <div class="card page" id="username-page">
+    <h2>تنظیم نام کاربری</h2>
+    <div class="field">
+      <input type="text" id="usernameInput" placeholder="نام کاربری دلخواه (حداقل 3 کاراکتر)">
+      <div id="usernameStatus"></div>
+    </div>
+    <div class="note warning">
+      نکته: نام کاربری فقط دو بار قابل تغییر است. با دقت انتخاب کنید!
+    </div>
+    <div class="buttons">
+      <button id="saveUsernameBtn">ذخیره نام کاربری</button>
+    </div>
+  </div>
+
+  <!-- صفحه ساخت روم -->
+  <div class="card page" id="create-room">
+    <h2>ساخت روم جدید</h2>
+    <div class="field">
+      <input type="text" id="newRoomId" placeholder="آیدی دلخواه روم (انگلیسی)">
+      <div id="roomIdStatus"></div>
+    </div>
+    <div class="note warning">
+      نکته: حداقل تعداد مجاز کاراکتر 3 است و باید کاراکتر ها انگلیسی باشند (a-z, 0-9, -, _)
+    </div>
+    <div class="buttons">
+      <button id="createRoomBtn">Create & Join</button>
+    </div>
+  </div>
+
+  <!-- صفحه جوین روم -->
+  <div class="card page" id="join-room">
+    <h2>ورود به روم</h2>
+    <div class="field">
+      <input type="text" id="joinRoomId" placeholder="آیدی روم را وارد کنید">
+      <div id="joinStatus"></div>
+    </div>
+    <div class="buttons">
+      <button id="joinRoomBtn">Join</button>
+    </div>
+  </div>
+
+  <!-- صفحه تنظیمات روم -->
+  <div class="card page" id="room-settings-page">
+    <h2>تنظیمات روم</h2>
+    <p>روم فعلی: <strong id="currentRoomName"></strong></p>
+    <p>حالت ورود:</p>
+    <div class="mode-selector">
+      <label class="mode-option">
+        <input type="radio" name="roomMode" value="open" checked>
+        <span>آزاد (هرکی آیدی بدونه وارد می‌شه)</span>
+      </label>
+      <label class="mode-option">
+        <input type="radio" name="roomMode" value="permission">
+        <span>با اجازه (فقط با تأیید هاست)</span>
+      </label>
+    </div>
+    <div class="buttons">
+      <button id="saveRoomModeBtn">ذخیره تنظیمات</button>
+    </div>
+    <div id="roomModeStatus"></div>
+  </div>
+
+  <!-- صفحه چت -->
+  <div class="card page" id="chat-page">
+    <h2 id="roomTitle">روم: ...</h2>
+    <div class="chat-messages" id="messages"></div>
+    <div class="field">
+      <input type="text" id="messageInput" placeholder="پیام خود را بنویسید...">
+    </div>
+    <div class="buttons">
+      <button id="sendBtn">ارسال</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// لینک Worker
+const WORKER_URL = "https://frosty-rain-369.alijayz.workers.dev/api";
+
+// داده‌ها
+let currentRoom = null;
+let username = localStorage.getItem('username') || null;
+let usernameChanges = parseInt(localStorage.getItem('usernameChanges') || '0');
+let isOwner = false;
+
+// منوی همبرگری – کار می‌کنه
+const hamburger = document.getElementById('hamburger');
+const sidebar = document.getElementById('sidebar');
+
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('active');
+  sidebar.classList.toggle('active');
+});
+
+// سوئیچ صفحه
+document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(item.dataset.page).classList.add('active');
+    hamburger.classList.remove('active');
+    sidebar.classList.remove('active');
+  });
+});
+
+// تنظیم نام کاربری – حداکثر 2 بار
+document.getElementById('saveUsernameBtn').addEventListener('click', () => {
+  if (usernameChanges >= 2) {
+    document.getElementById('usernameStatus').innerHTML = '<p style="color:#ff6b6b;">نام کاربری دیگر قابل تغییر نیست!</p>';
+    return;
+  }
+  const name = document.getElementById('usernameInput').value.trim();
+  if (!name || name.length < 3) {
+    document.getElementById('usernameStatus').innerHTML = '<p style="color:#ff6b6b;">نام کاربری حداقل 3 کاراکتر باشد</p>';
+    return;
+  }
+  username = name;
+  localStorage.setItem('username', username);
+  usernameChanges++;
+  localStorage.setItem('usernameChanges', usernameChanges.toString());
+  document.getElementById('usernameStatus').innerHTML = '<p style="color:#50fa7b;">نام کاربری ذخیره شد: ' + name + '</p>';
+  if (usernameChanges >= 2) {
+    document.getElementById('usernameMenuItem').style.display = 'none';
+  }
+});
+
+// چک آیدی روم از Worker
+document.getElementById('newRoomId').addEventListener('input', async () => {
+  const id = document.getElementById('newRoomId').value.trim().toLowerCase();
+  const status = document.getElementById('roomIdStatus');
+  if (id.length < 3) {
+    status.innerHTML = '<p style="color:#ff6b6b;">حداقل 3 کاراکتر</p>';
+    return;
+  }
+  if (!/^[a-z0-9_-]+$/.test(id)) {
+    status.innerHTML = '<p style="color:#ff6b6b;">فقط حروف انگلیسی، عدد، - و _</p>';
+    return;
+  }
+  try {
+    const res = await fetch(`${WORKER_URL}/room-data?roomId=${id}`);
+    if (res.ok) {
+      status.innerHTML = '<p style="color:#ff6b6b;">این آیدی تکراری است</p>';
+    } else {
+      status.innerHTML = '<p style="color:#50fa7b;">آیدی آزاد است</p>';
+    }
+  } catch {
+    status.innerHTML = '<p style="color:#ff6b6b;">خطا در اتصال</p>';
+  }
+});
+
+// ساخت روم
+document.getElementById('createRoomBtn').addEventListener('click', async () => {
+  if (!username) return alert("ابتدا نام کاربری تنظیم کنید");
+  const id = document.getElementById('newRoomId').value.trim().toLowerCase();
+  if (!id || id.length < 3 || !/^[a-z0-9_-]+$/.test(id)) return alert("آیدی معتبر وارد کنید");
+  try {
+    const res = await fetch(`${WORKER_URL}/create-room`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({roomId: id, username})
+    });
+    const data = await res.json();
+    if (data.success) {
+      enterRoom(id);
+    } else {
+      alert(data.error || "خطا در ساخت روم");
+    }
+  } catch {
+    alert("خطا در اتصال به سرور");
+  }
+});
+
+// جوین روم
+document.getElementById('joinRoomBtn').addEventListener('click', async () => {
+  if (!username) return alert("ابتدا نام کاربری تنظیم کنید");
+  const id = document.getElementById('joinRoomId').value.trim().toLowerCase();
+  if (!id) return alert("آیدی روم را وارد کنید");
+  try {
+    const res = await fetch(`${WORKER_URL}/join-room`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({roomId: id, username})
+    });
+    const data = await res.json();
+    if (data.success) {
+      enterRoom(id);
+    } else if (data.status === "pending") {
+      document.getElementById('joinStatus').innerHTML = '<p style="color:#ffff00;">درخواست ورود ارسال شد. منتظر تأیید هاست باشید...</p>';
+    } else {
+      document.getElementById('joinStatus').innerHTML = '<p style="color:#ff6b6b;">' + (data.error || "روم وجود ندارد") + '</p>';
+    }
+  } catch {
+    alert("خطا در اتصال به سرور");
+  }
+});
+
+// ورود به روم
+async function enterRoom(id) {
+  currentRoom = id;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('chat-page').classList.add('active');
+  document.getElementById('roomTitle').textContent = `روم: ${id}`;
+  loadRoomData();
+  setInterval(loadRoomData, 3000);
+}
+
+// لود اطلاعات روم
+async function loadRoomData() {
+  if (!currentRoom) return;
+  try {
+    const res = await fetch(`${WORKER_URL}/room-data?roomId=${currentRoom}&username=${username}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    isOwner = data.isOwner;
+    document.getElementById('roomSettingsMenu').style.display = isOwner ? 'block' : 'none';
+    const container = document.getElementById('messages');
+    container.innerHTML = '';
+    (data.messages || []).forEach(msg => {
+      const div = document.createElement('div');
+      div.className = 'message ' + (msg.user === username ? 'sent' : 'received');
+      div.innerHTML = `<div class="message-user">${msg.user}</div>${msg.text}`;
+      container.appendChild(div);
+    });
+    if (isOwner && data.requests && data.requests.length > 0) {
+      data.requests.forEach(req => addRequestMessage(req));
+    }
+    container.scrollTop = container.scrollHeight;
+  } catch {
+    console.log("خطا در لود اطلاعات روم");
+  }
+}
+
+// اضافه کردن پیام درخواست
+function addRequestMessage(requestUser) {
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'message request-message';
+  div.innerHTML = `
+    <div>${requestUser} درخواست ورود به روم را دارد</div>
+    <div class="request-buttons">
+      <button onclick="approveRequest('${requestUser}')">اجازه بده</button>
+      <button onclick="rejectRequest('${requestUser}')">رد کن</button>
+    </div>
+  `;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+// تأیید/رد درخواست
+async function approveRequest(user) {
+  await fetch(`${WORKER_URL}/approve-request`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({roomId: currentRoom, username, targetUser: user})
+  });
+  loadRoomData();
+}
+
+async function rejectRequest(user) {
+  await fetch(`${WORKER_URL}/reject-request`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({roomId: currentRoom, username, targetUser: user})
+  });
+  loadRoomData();
+}
+
+// ارسال پیام
+document.getElementById('sendBtn').addEventListener('click', async () => {
+  const input = document.getElementById('messageInput');
+  if (!input.value.trim()) return;
+  try {
+    await fetch(`${WORKER_URL}/send-message`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({roomId: currentRoom, username, text: input.value})
+    });
+    input.value = '';
+    loadRoomData();
+  } catch {
+    alert("خطا در ارسال پیام");
+  }
+});
+
+// تنظیمات روم
+document.getElementById('roomSettingsMenu').addEventListener('click', async () => {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('room-settings-page').classList.add('active');
+  document.getElementById('currentRoomName').textContent = currentRoom;
+  const res = await fetch(`${WORKER_URL}/room-data?roomId=${currentRoom}&username=${username}`);
+  const data = await res.json();
+  document.querySelector(`input[name="roomMode"][value="${data.mode}"]`).checked = true;
+});
+
+document.getElementById('saveRoomModeBtn').addEventListener('click', async () => {
+  const mode = document.querySelector('input[name="roomMode"]:checked').value;
+  try {
+    const res = await fetch(`${WORKER_URL}/change-room-mode`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({roomId: currentRoom, username, mode})
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('roomModeStatus').innerHTML = '<p style="color:#50fa7b;">تنظیمات روم ذخیره شد!</p>';
+    } else {
+      alert(data.error || "خطا در ذخیره تنظیمات");
+    }
+  } catch {
+    alert("خطا در اتصال به سرور");
+  }
+});
+
+// کد اصلی ابزار رمزنگاری
+const plainText = document.getElementById("plainText");
+const password = document.getElementById("password");
+const output = document.getElementById("output");
+const fileInput = document.getElementById("fileInput");
+const copyBtn = document.getElementById("copyBtn");
+const pasteBtn = document.getElementById("pasteBtn");
+const encryptBtn = document.getElementById("encryptBtn");
+const decryptBtn = document.getElementById("decryptBtn");
+
+document.getElementById("togglePlain").addEventListener('click', () => {
+  plainText.style.webkitTextSecurity = plainText.style.webkitTextSecurity === "disc" ? "none" : "disc";
+});
+document.getElementById("togglePass").addEventListener('click', () => {
+  password.type = password.type === "text" ? "password" : "text";
+});
+pasteBtn.addEventListener('click', async () => {
+  try {
+    const text = await navigator.clipboard.readText();
+    plainText.value = text.trim();
+    alert("متن با موفقیت پیست شد! 👍");
+  } catch (err) {
+    alert("پیست اتوماتیک کار نکرد 😕\n\nراه آسان: متن را کپی کنید، سپس داخل باکس Long Press کنید و 'Paste' را بزنید.");
+  }
+});
+copyBtn.addEventListener('click', () => {
+  if (!output.value.trim()) {
+    alert("خروجی خالی است! اول رمزگذاری یا رمزگشایی کنید.");
+    return;
+  }
+  output.select();
+  document.execCommand("copy");
+  alert("متن خروجی کپی شد! حالا می‌توانید ذخیره کنید 📋");
+});
+async function deriveKey(pass, salt) {
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    {name: "PBKDF2", salt, iterations: 200000, hash: "SHA-256"},
+    base, {name: "AES-GCM", length: 256}, false, ["encrypt", "decrypt"]
+  );
+}
+async function encrypt(text, pass) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKey(pass, salt);
+  const cipher = await crypto.subtle.encrypt({name: "AES-GCM", iv}, key, new TextEncoder().encode(text));
+  return btoa(String.fromCharCode(...salt, ...iv, ...new Uint8Array(cipher)));
+}
+async function decrypt(data, pass) {
+  const raw = Uint8Array.from(atob(data), c => c.charCodeAt(0));
+  const salt = raw.slice(0,16);
+  const iv = raw.slice(16,28);
+  const ct = raw.slice(28);
+  const key = await deriveKey(pass, salt);
+  const plain = await crypto.subtle.decrypt({name: "AES-GCM", iv}, key, ct);
+  return new TextDecoder().decode(plain);
+}
+encryptBtn.addEventListener('click', async () => {
+  if (!password.value) return alert("رمز وارد نشده");
+  if (!plainText.value.trim()) return alert("متن خالی است");
+  try {
+    const result = await encrypt(plainText.value.trim(), password.value);
+    output.value = result;
+    const isCopyMode = document.querySelector('input[name="appMode"]:checked').value === "copy";
+    if (isCopyMode) {
+      alert("رمزگذاری موفق! حالا روی دکمه Copy بزنید.");
+    } else {
+      const blob = new Blob([result], {type: "text/plain"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "secure.enc";
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }, 1000);
+      alert("فایل رمزگذاری‌شده دانلود شد (secure.enc)");
+    }
+    plainText.value = "";
+    password.value = "";
+  } catch (e) {
+    alert("خطا در رمزگذاری");
+  }
+});
+decryptBtn.addEventListener('click', () => {
+  if (!password.value) return alert("رمز وارد نشده");
+  const isCopyMode = document.querySelector('input[name="appMode"]:checked').value === "copy";
+  if (isCopyMode) {
+    if (!plainText.value.trim()) return alert("ورودی خالی است! متن رمز شده را پیست کنید");
+    decryptFromText();
+  } else {
+    fileInput.click();
+  }
+});
+async function decryptFromText() {
+  try {
+    output.value = await decrypt(plainText.value.trim(), password.value);
+    plainText.value = "";
+  } catch (e) {
+    alert("رمز اشتباه است یا متن خراب است");
+  }
+}
+fileInput.addEventListener('change', async () => {
+  if (!fileInput.files[0]) return;
+  try {
+    const text = await fileInput.files[0].text();
+    output.value = await decrypt(text, password.value);
+  } catch (e) {
+    alert("رمز اشتباه است یا فایل خراب است");
+  }
+  fileInput.value = "";
+});
+</script>
+</body>
+</html>
