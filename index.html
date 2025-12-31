@@ -262,6 +262,34 @@ footer {
   padding:10px;
   font-size:14px;
 }
+/* صفحه انتظار */
+.waiting-page {
+  text-align:center;
+  padding:60px 20px;
+}
+.loader {
+  width:100px;
+  height:100px;
+  border:10px solid rgba(76,194,255,0.2);
+  border-top:10px solid #4cc2ff;
+  border-radius:50%;
+  animation: spin 1.2s linear infinite;
+  margin:40px auto;
+}
+@keyframes spin {
+  0% { transform:rotate(0deg); }
+  100% { transform:rotate(360deg); }
+}
+.waiting-page h3 {
+  font-size:26px;
+  margin:20px 0;
+  color:#4cc2ff;
+}
+.waiting-page p {
+  font-size:17px;
+  opacity:0.9;
+  line-height:1.6;
+}
 </style>
 </head>
 <body>
@@ -407,6 +435,16 @@ footer {
     </div>
   </div>
 
+  <!-- صفحه انتظار جدید -->
+  <div class="card page" id="waiting-page">
+    <div class="waiting-page">
+      <div class="loader"></div>
+      <h3>در انتظار تأیید هاست...</h3>
+      <p>درخواست ورود شما ارسال شد</p>
+      <p>لطفاً منتظر بمانید تا هاست درخواست شما را بررسی کند</p>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -418,11 +456,11 @@ let currentRoom = null;
 let username = localStorage.getItem('username') || null;
 let usernameChanges = parseInt(localStorage.getItem('usernameChanges') || '0');
 let isOwner = false;
+let pendingRoomId = null; // برای صفحه انتظار
 
-// منوی همبرگری – کار می‌کنه
+// منوی همبرگری
 const hamburger = document.getElementById('hamburger');
 const sidebar = document.getElementById('sidebar');
-
 hamburger.addEventListener('click', () => {
   hamburger.classList.toggle('active');
   sidebar.classList.toggle('active');
@@ -438,7 +476,7 @@ document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
   });
 });
 
-// تنظیم نام کاربری – حداکثر 2 بار
+// تنظیم نام کاربری
 document.getElementById('saveUsernameBtn').addEventListener('click', () => {
   if (usernameChanges >= 2) {
     document.getElementById('usernameStatus').innerHTML = '<p style="color:#ff6b6b;">نام کاربری دیگر قابل تغییر نیست!</p>';
@@ -459,7 +497,7 @@ document.getElementById('saveUsernameBtn').addEventListener('click', () => {
   }
 });
 
-// چک آیدی روم از Worker
+// چک آیدی روم
 document.getElementById('newRoomId').addEventListener('input', async () => {
   const id = document.getElementById('newRoomId').value.trim().toLowerCase();
   const status = document.getElementById('roomIdStatus');
@@ -520,7 +558,8 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
     if (data.success) {
       enterRoom(id);
     } else if (data.status === "pending") {
-      document.getElementById('joinStatus').innerHTML = '<p style="color:#ffff00;">درخواست ورود ارسال شد. منتظر تأیید هاست باشید...</p>';
+      pendingRoomId = id;
+      showWaitingPage();
     } else {
       document.getElementById('joinStatus').innerHTML = '<p style="color:#ff6b6b;">' + (data.error || "روم وجود ندارد") + '</p>';
     }
@@ -529,9 +568,39 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
   }
 });
 
+// نمایش صفحه انتظار
+function showWaitingPage() {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('waiting-page').classList.add('active');
+  checkPendingStatus();
+  setInterval(checkPendingStatus, 3000);
+}
+
+// چک وضعیت درخواست
+async function checkPendingStatus() {
+  if (!pendingRoomId) return;
+  try {
+    const res = await fetch(`${WORKER_URL}/room-data?roomId=${pendingRoomId}&username=${username}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.isMember) {
+      pendingRoomId = null;
+      enterRoom(pendingRoomId);
+    } else if (!data.hasRequest) {
+      pendingRoomId = null;
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('join-room').classList.add('active');
+      document.getElementById('joinStatus').innerHTML = '<p style="color:#ff6b6b;">درخواست شما توسط هاست رد شد</p>';
+    }
+  } catch {
+    console.log("خطا در چک وضعیت");
+  }
+}
+
 // ورود به روم
 async function enterRoom(id) {
   currentRoom = id;
+  pendingRoomId = null;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('chat-page').classList.add('active');
   document.getElementById('roomTitle').textContent = `روم: ${id}`;
@@ -590,7 +659,6 @@ async function approveRequest(user) {
   });
   loadRoomData();
 }
-
 async function rejectRequest(user) {
   await fetch(`${WORKER_URL}/reject-request`, {
     method: "POST",
@@ -626,7 +694,6 @@ document.getElementById('roomSettingsMenu').addEventListener('click', async () =
   const data = await res.json();
   document.querySelector(`input[name="roomMode"][value="${data.mode}"]`).checked = true;
 });
-
 document.getElementById('saveRoomModeBtn').addEventListener('click', async () => {
   const mode = document.querySelector('input[name="roomMode"]:checked').value;
   try {
