@@ -293,12 +293,14 @@ footer {
 </style>
 </head>
 <body>
+
 <!-- منوی همبرگری -->
 <div class="hamburger" id="hamburger">
   <span></span>
   <span></span>
   <span></span>
 </div>
+
 <!-- سایدبار -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-item" data-page="home">🏠 خانه (ابزار رمزنگاری)</div>
@@ -307,7 +309,9 @@ footer {
   <div class="sidebar-item" data-page="room-settings-page" id="roomSettingsMenu" style="display:none;">⚙️ تنظیمات روم</div>
   <div class="sidebar-item" data-page="username-page" id="usernameMenuItem">👤 تنظیم نام کاربری</div>
 </div>
+
 <div class="container">
+
   <!-- صفحه خانه -->
   <div class="card page active" id="home">
     <h2>Secure Vault</h2>
@@ -355,6 +359,7 @@ footer {
     </div>
     <footer>AES-256-GCM • PBKDF2 • 100% Client-Side</footer>
   </div>
+
   <!-- صفحه تنظیم نام کاربری -->
   <div class="card page" id="username-page">
     <h2>تنظیم نام کاربری</h2>
@@ -363,12 +368,13 @@ footer {
       <div id="usernameStatus"></div>
     </div>
     <div class="note warning">
-      نکته: نام کاربری غیرقابل تغییر است. با دقت انتخاب کنید!
+      نکته: نام کاربری فقط دو بار قابل تغییر است. با دقت انتخاب کنید!
     </div>
     <div class="buttons">
-      <button class="positive-btn" id="saveUsernameBtn">ذخیره نام کاربری</button>
+      <button id="saveUsernameBtn">ذخیره نام کاربری</button>
     </div>
   </div>
+
   <!-- صفحه ساخت روم -->
   <div class="card page" id="create-room">
     <h2>ساخت روم جدید</h2>
@@ -380,9 +386,10 @@ footer {
       نکته: حداقل تعداد مجاز کاراکتر 3 است و باید کاراکتر ها انگلیسی باشند (a-z, 0-9, -, _)
     </div>
     <div class="buttons">
-      <button class="positive-btn" id="createRoomBtn">Create & Join</button>
+      <button id="createRoomBtn">Create & Join</button>
     </div>
   </div>
+
   <!-- صفحه جوین روم -->
   <div class="card page" id="join-room">
     <h2>ورود به روم</h2>
@@ -391,9 +398,10 @@ footer {
       <div id="joinStatus"></div>
     </div>
     <div class="buttons">
-      <button class="positive-btn" id="joinRoomBtn">Join</button>
+      <button id="joinRoomBtn">Join</button>
     </div>
   </div>
+
   <!-- صفحه تنظیمات روم -->
   <div class="card page" id="room-settings-page">
     <h2>تنظیمات روم</h2>
@@ -410,10 +418,11 @@ footer {
       </label>
     </div>
     <div class="buttons">
-      <button class="positive-btn" id="saveRoomModeBtn">ذخیره تنظیمات</button>
+      <button id="saveRoomModeBtn">ذخیره تنظیمات</button>
     </div>
     <div id="roomModeStatus"></div>
   </div>
+
   <!-- صفحه چت -->
   <div class="card page" id="chat-page">
     <h2 id="roomTitle">روم: ...</h2>
@@ -422,9 +431,10 @@ footer {
       <input type="text" id="messageInput" placeholder="پیام خود را بنویسید...">
     </div>
     <div class="buttons">
-      <button class="positive-btn" id="sendBtn">ارسال</button>
+      <button id="sendBtn">ارسال</button>
     </div>
   </div>
+
   <!-- صفحه انتظار -->
   <div class="card page" id="waiting-page">
     <div class="waiting-page">
@@ -434,15 +444,19 @@ footer {
       <p>لطفاً منتظر بمانید تا هاست درخواست شما را بررسی کند</p>
     </div>
   </div>
+
 </div>
+
 <script>
 // لینک Worker
 const WORKER_URL = "https://frosty-rain-369.alijayz.workers.dev/api";
+
 // داده‌ها
 let currentRoom = null;
 let username = localStorage.getItem('username') || null;
+let usernameChanges = parseInt(localStorage.getItem('usernameChanges') || '0');
 let isOwner = false;
-let pendingRoomId = null; // برای صفحه انتظار
+let pendingRoomId = null;
 
 // منوی همبرگری
 const hamburger = document.getElementById('hamburger');
@@ -451,6 +465,7 @@ hamburger.addEventListener('click', () => {
   hamburger.classList.toggle('active');
   sidebar.classList.toggle('active');
 });
+
 // سوئیچ صفحه
 document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
   item.addEventListener('click', () => {
@@ -460,10 +475,11 @@ document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
     sidebar.classList.remove('active');
   });
 });
-// تنظیم نام کاربری – فقط یک بار
+
+// تنظیم نام کاربری
 document.getElementById('saveUsernameBtn').addEventListener('click', () => {
-  if (username) {
-    document.getElementById('usernameStatus').innerHTML = '<p style="color:#ff6b6b;">نام کاربری قبلاً تنظیم شده و غیرقابل تغییر است!</p>';
+  if (usernameChanges >= 2) {
+    document.getElementById('usernameStatus').innerHTML = '<p style="color:#ff6b6b;">نام کاربری دیگر قابل تغییر نیست (حداکثر 2 بار)!</p>';
     return;
   }
   const name = document.getElementById('usernameInput').value.trim();
@@ -473,9 +489,14 @@ document.getElementById('saveUsernameBtn').addEventListener('click', () => {
   }
   username = name;
   localStorage.setItem('username', username);
+  usernameChanges++;
+  localStorage.setItem('usernameChanges', usernameChanges.toString());
   document.getElementById('usernameStatus').innerHTML = '<p style="color:#50fa7b;">نام کاربری ذخیره شد: ' + name + '</p>';
-  document.getElementById('usernameMenuItem').style.display = 'none';
+  if (usernameChanges >= 2) {
+    document.getElementById('usernameMenuItem').style.display = 'none';
+  }
 });
+
 // چک آیدی روم
 document.getElementById('newRoomId').addEventListener('input', async () => {
   const id = document.getElementById('newRoomId').value.trim().toLowerCase();
@@ -499,6 +520,7 @@ document.getElementById('newRoomId').addEventListener('input', async () => {
     status.innerHTML = '<p style="color:#ff6b6b;">خطا در اتصال</p>';
   }
 });
+
 // ساخت روم
 document.getElementById('createRoomBtn').addEventListener('click', async () => {
   if (!username) return alert("ابتدا نام کاربری تنظیم کنید");
@@ -520,7 +542,8 @@ document.getElementById('createRoomBtn').addEventListener('click', async () => {
     alert("خطا در اتصال به سرور");
   }
 });
-// جوین روم – با صفحه انتظار برای pending
+
+// جوین روم
 document.getElementById('joinRoomBtn').addEventListener('click', async () => {
   if (!username) return alert("ابتدا نام کاربری تنظیم کنید");
   const id = document.getElementById('joinRoomId').value.trim().toLowerCase();
@@ -533,10 +556,8 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
     });
     const data = await res.json();
     if (data.success) {
-      // قبلاً عضو است → مستقیم وارد چت
       enterRoom(id);
     } else if (data.status === "pending") {
-      // درخواست جدید → صفحه انتظار
       pendingRoomId = id;
       showWaitingPage();
     } else {
@@ -546,6 +567,7 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
     alert("خطا در اتصال به سرور");
   }
 });
+
 // نمایش صفحه انتظار
 function showWaitingPage() {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -553,7 +575,8 @@ function showWaitingPage() {
   checkPendingStatus();
   setInterval(checkPendingStatus, 3000);
 }
-// چک وضعیت درخواست
+
+// چک وضعیت درخواست – جلوگیری کامل از دسترسی به چت
 async function checkPendingStatus() {
   if (!pendingRoomId) return;
   try {
@@ -565,6 +588,11 @@ async function checkPendingStatus() {
       enterRoom(pendingRoomId);
     } else if (!data.hasRequest) {
       pendingRoomId = null;
+      // خارج کردن از چت اگر اشتباها رفته باشه
+      if (currentRoom === pendingRoomId) {
+        currentRoom = null;
+        document.getElementById('messages').innerHTML = '';
+      }
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById('join-room').classList.add('active');
       document.getElementById('joinStatus').innerHTML = '<p style="color:#ff6b6b;">درخواست شما توسط هاست رد شد</p>';
@@ -573,7 +601,8 @@ async function checkPendingStatus() {
     console.log("خطا در چک وضعیت");
   }
 }
-// ورود به روم (فقط وقتی عضو شد)
+
+// ورود به روم
 async function enterRoom(id) {
   currentRoom = id;
   pendingRoomId = null;
@@ -583,6 +612,7 @@ async function enterRoom(id) {
   loadRoomData();
   setInterval(loadRoomData, 3000);
 }
+
 // لود اطلاعات روم
 async function loadRoomData() {
   if (!currentRoom) return;
@@ -608,6 +638,7 @@ async function loadRoomData() {
     console.log("خطا در لود اطلاعات روم");
   }
 }
+
 // اضافه کردن پیام درخواست
 function addRequestMessage(requestUser) {
   const container = document.getElementById('messages');
@@ -623,6 +654,7 @@ function addRequestMessage(requestUser) {
   container.appendChild(div);
   container.scrollTop = container.scrollHeight;
 }
+
 // تأیید/رد درخواست
 async function approveRequest(user) {
   await fetch(`${WORKER_URL}/approve-request`, {
@@ -640,6 +672,7 @@ async function rejectRequest(user) {
   });
   loadRoomData();
 }
+
 // ارسال پیام
 document.getElementById('sendBtn').addEventListener('click', async () => {
   const input = document.getElementById('messageInput');
@@ -656,6 +689,7 @@ document.getElementById('sendBtn').addEventListener('click', async () => {
     alert("خطا در ارسال پیام");
   }
 });
+
 // تنظیمات روم
 document.getElementById('roomSettingsMenu').addEventListener('click', async () => {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -683,7 +717,8 @@ document.getElementById('saveRoomModeBtn').addEventListener('click', async () =>
     alert("خطا در اتصال به سرور");
   }
 });
-// کد اصلی ابزار رمزنگاری – بدون تغییر
+
+// کد اصلی ابزار رمزنگاری
 const plainText = document.getElementById("plainText");
 const password = document.getElementById("password");
 const output = document.getElementById("output");
@@ -692,6 +727,7 @@ const copyBtn = document.getElementById("copyBtn");
 const pasteBtn = document.getElementById("pasteBtn");
 const encryptBtn = document.getElementById("encryptBtn");
 const decryptBtn = document.getElementById("decryptBtn");
+
 document.getElementById("togglePlain").addEventListener('click', () => {
   plainText.style.webkitTextSecurity = plainText.style.webkitTextSecurity === "disc" ? "none" : "disc";
 });
