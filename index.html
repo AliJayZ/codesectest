@@ -205,6 +205,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   background:rgba(255,255,255,0.1);
   position:relative;
   cursor:pointer;
+  transition: background 0.3s;
 }
 .message.sent { 
   margin-left:auto; 
@@ -238,6 +239,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   margin-bottom:8px;
   opacity:0.8;
   font-size:13px;
+  cursor:pointer;
 }
 .reply-user { font-weight:bold; font-size:12px; }
 .reply-text { opacity:0.8; }
@@ -251,10 +253,10 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   flex:1;
 }
 #sendBtn {
-  width:50px;
-  height:50px;
+  width:40px;
+  height:40px;
   border-radius:50%;
-  font-size:24px;
+  font-size:18px;
   padding:0;
   display:flex;
   align-items:center;
@@ -646,7 +648,7 @@ async function loadRoomData() {
     isOwner = data.isOwner;
     document.getElementById('roomSettingsMenu').style.display = isOwner ? 'block' : 'none';
 
-    // لیست آنلاین (همه ممبرها آنلاین فرض می‌شوند)
+    // لیست آنلاین
     let onlineHtml = '<strong>افراد آنلاین (' + (data.members?.length || 0) + '):</strong><br>';
     (data.members || []).forEach(u => {
       onlineHtml += `<span class="online-user">• ${u}${u === username ? ' (شما)' : ''}</span><br>`;
@@ -658,6 +660,7 @@ async function loadRoomData() {
     (data.messages || []).forEach((msg, index) => {
       const div = document.createElement('div');
       div.className = 'message ' + (msg.user === username ? 'sent' : 'received');
+      div.dataset.msgIndex = index;
 
       let replyHtml = '';
       if (msg.replyTo !== undefined && data.messages[msg.replyTo]) {
@@ -681,21 +684,24 @@ async function loadRoomData() {
 
       // کلیک برای خوانندگان
       div.addEventListener('click', () => {
-        alert(`خوانده شده توسط: ${data.members.join(', ')}`);
+        const readers = data.members.filter(u => u !== msg.user);
+        alert(`خوانده شده توسط: ${readers.length > 0 ? readers.join(', ') : 'هنوز کسی نخوانده'}`);
       });
 
-      // ریپلای با long press
-      let timer;
-      div.addEventListener('mousedown', () => {
-        timer = setTimeout(() => {
-          if (confirm('ریپلای به این پیام؟')) {
-            replyTo = index;
-            document.getElementById('messageInput').placeholder = 'در پاسخ به ' + msg.user + '...';
-          }
-        }, 500);
+      // ریپلای با swipe راست
+      let touchStartX = 0;
+      div.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
       });
-      div.addEventListener('mouseup', () => clearTimeout(timer));
-      div.addEventListener('mouseleave', () => clearTimeout(timer));
+      div.addEventListener('touchend', (e) => {
+        const touchEndX = e.changedTouches[0].clientX;
+        const diff = touchStartX - touchEndX;
+        if (diff > 50) { // swipe راست
+          replyTo = index;
+          document.getElementById('messageInput').placeholder = 'در پاسخ به ' + msg.user + '...';
+          document.getElementById('messageInput').focus();
+        }
+      });
 
       container.appendChild(div);
     });
@@ -706,12 +712,12 @@ async function loadRoomData() {
 }
 
 function scrollToMessage(index) {
-  const msgs = document.querySelectorAll('.message');
-  if (msgs[index]) {
-    msgs[index].scrollIntoView({behavior: 'smooth', block: 'center'});
-    msgs[index].style.background = msgs[index].classList.contains('sent') ? '#5dd3ff' : 'rgba(255,255,255,0.3)';
+  const msg = document.querySelector(`.message[data-msg-index="${index}"]`);
+  if (msg) {
+    msg.scrollIntoView({behavior: 'smooth', block: 'center'});
+    msg.style.background = msg.classList.contains('sent') ? '#5dd3ff' : 'rgba(76,194,255,0.4)';
     setTimeout(() => {
-      msgs[index].style.background = msgs[index].classList.contains('sent') ? '#4cc2ff' : 'rgba(255,255,255,0.15)';
+      msg.style.background = msg.classList.contains('sent') ? '#4cc2ff' : 'rgba(255,255,255,0.15)';
     }, 1000);
   }
 }
