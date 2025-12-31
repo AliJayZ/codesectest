@@ -179,18 +179,6 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   margin-bottom:10px;
   font-size:18px;
 }
-#onlineUsers {
-  margin-bottom:15px;
-  padding:10px;
-  background:rgba(255,255,255,0.05);
-  border-radius:12px;
-  font-size:14px;
-  display:none;
-}
-.online-user {
-  display:block;
-  padding:2px 0;
-}
 .chat-messages {
   height:55vh;
   overflow-y:auto;
@@ -289,6 +277,24 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   margin-bottom:10px;
 }
 .room-actions button { padding:8px 12px; font-size:13px; margin-left:8px; }
+/* صفحه افراد روم */
+#room-members-page .user-item {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:rgba(255,255,255,0.05);
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:10px;
+}
+.user-item span { flex:1; }
+.user-item .user-actions { display:flex; gap:8px; }
+.user-item .user-actions button { padding:6px 10px; font-size:12px; background:#4cc2ff; border-radius:8px; }
+.user-item .user-actions button.ban { background:#ff4444; }
+.user-item .user-actions button.admin { background:#50fa7b; }
+.user-item .status { font-size:12px; opacity:0.7; margin-right:10px; }
+.status.online { color:#50fa7b; }
+.status.offline { color:#ff4444; }
 </style>
 </head>
 <body>
@@ -307,6 +313,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   <div class="sidebar-item" data-page="join-room">🔑 ورود به روم</div>
   <div class="sidebar-item" data-page="manage-rooms">📂 مدیریت روم‌ها</div>
   <div class="sidebar-item" data-page="room-settings-page" id="roomSettingsMenu" style="display:none;">⚙️ تنظیمات روم</div>
+  <div class="sidebar-item" data-page="room-members-page" id="roomMembersMenu" style="display:none;">👥 افراد روم</div>
   <div class="sidebar-item" data-page="username-page" id="usernameMenuItem">👤 تنظیم نام کاربری</div>
 </div>
 
@@ -426,7 +433,6 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   <!-- صفحه چت جدید -->
   <div class="card page" id="chat-page">
     <div id="roomTitle">روم: ...</div>
-    <div id="onlineUsers">در حال بارگذاری...</div>
     <div class="chat-messages" id="messages"></div>
     <div class="message-input-group">
       <input type="text" id="messageInput" placeholder="پیام خود را بنویسید...">
@@ -449,6 +455,14 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
     <h2>مدیریت روم‌ها</h2>
     <p>روم‌هایی که شما ساخته‌اید:</p>
     <div id="myRoomsList" class="room-list">
+      <p style="text-align:center;opacity:0.7;">در حال بارگذاری...</p>
+    </div>
+  </div>
+
+  <!-- صفحه افراد روم -->
+  <div class="card page" id="room-members-page">
+    <h2>افراد روم</h2>
+    <div id="roomMembersList">
       <p style="text-align:center;opacity:0.7;">در حال بارگذاری...</p>
     </div>
   </div>
@@ -482,9 +496,8 @@ document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
     document.getElementById(item.dataset.page).classList.add('active');
     hamburger.classList.remove('active');
     sidebar.classList.remove('active');
-    if (item.dataset.page === "manage-rooms") {
-      loadMyRooms();
-    }
+    if (item.dataset.page === "manage-rooms") loadMyRooms();
+    if (item.dataset.page === "room-members-page") loadRoomMembers();
   });
 });
 
@@ -504,9 +517,7 @@ document.getElementById('saveUsernameBtn').addEventListener('click', () => {
   usernameChanges++;
   localStorage.setItem('usernameChanges', usernameChanges.toString());
   document.getElementById('usernameStatus').innerHTML = '<p style="color:#50fa7b;">نام کاربری ذخیره شد: ' + name + '</p>';
-  if (usernameChanges >= 2) {
-    document.getElementById('usernameMenuItem').style.display = 'none';
-  }
+  if (usernameChanges >= 2) document.getElementById('usernameMenuItem').style.display = 'none';
 });
 
 // چک آیدی روم
@@ -620,15 +631,9 @@ async function enterRoom(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('chat-page').classList.add('active');
   document.getElementById('roomTitle').textContent = `روم: ${id}`;
-  document.getElementById('roomTitle').onclick = toggleOnlineUsers;
+  document.getElementById('roomMembersMenu').style.display = 'block';
   loadRoomData();
   setInterval(loadRoomData, 3000);
-}
-
-// لیست آنلاین
-function toggleOnlineUsers() {
-  const el = document.getElementById('onlineUsers');
-  el.style.display = el.style.display === 'block' ? 'none' : 'block';
 }
 
 // لود روم با ویژگی‌های جدید
@@ -647,13 +652,6 @@ async function loadRoomData() {
     }
     isOwner = data.isOwner;
     document.getElementById('roomSettingsMenu').style.display = isOwner ? 'block' : 'none';
-
-    // لیست آنلاین
-    let onlineHtml = '<strong>افراد آنلاین (' + (data.members?.length || 0) + '):</strong><br>';
-    (data.members || []).forEach(u => {
-      onlineHtml += `<span class="online-user">• ${u}${u === username ? ' (شما)' : ''}</span><br>`;
-    });
-    document.getElementById('onlineUsers').innerHTML = onlineHtml;
 
     const container = document.getElementById('messages');
     container.innerHTML = '';
@@ -674,7 +672,8 @@ async function loadRoomData() {
       }
 
       const time = new Date(msg.time || Date.now()).toLocaleTimeString('fa-IR', {hour: '2-digit', minute:'2-digit'});
-      const tick = msg.user === username ? `<span class="message-tick tick-read">✓✓</span>` : '';
+      const otherMembers = data.members.filter(u => u !== username);
+      const tick = msg.user === username ? (otherMembers.length > 0 ? '<span class="message-tick tick-read">✓✓</span>' : '<span class="message-tick tick-sent">✓</span>') : '';
 
       div.innerHTML = replyHtml + `
         <div class="message-user">${msg.user}</div>
@@ -750,6 +749,113 @@ document.getElementById('sendBtn').addEventListener('click', async () => {
     loadRoomData();
   } catch {
     alert("خطا در ارسال");
+  }
+});
+
+// بارگذاری افراد روم
+async function loadRoomMembers() {
+  if (!currentRoom) {
+    document.getElementById('roomMembersList').innerHTML = '<p style="color:#ff6b6b;">ابتدا وارد یک روم شوید</p>';
+    return;
+  }
+  try {
+    const res = await fetch(`${WORKER_URL}/room-data?roomId=${currentRoom}&username=${username}`);
+    if (!res.ok) {
+      document.getElementById('roomMembersList').innerHTML = '<p style="color:#ff6b6b;">خطا در بارگذاری</p>';
+      return;
+    }
+    const data = await res.json();
+    const isAdmin = data.isOwner || (data.admins && data.admins.includes(username));
+    const now = Date.now();
+    const ONLINE_THRESHOLD = 300000; // 5 دقیقه
+
+    let html = '';
+    data.members.forEach(member => {
+      const isOnline = (now - (member.lastSeen || 0)) < ONLINE_THRESHOLD;
+      html += `
+        <div class="user-item">
+          <span>${member.name}</span>
+          <span class="status ${isOnline ? 'online' : 'offline'}">${isOnline ? 'آنلاین' : 'آفلاین'}</span>
+          ${isAdmin && member.name !== username ? `
+            <div class="user-actions">
+              <button onclick="kickUser('${member.name}')">حذف</button>
+              <button class="ban" onclick="banUser('${member.name}')">بن</button>
+              <button class="admin" onclick="toggleAdmin('${member.name}')">${data.admins && data.admins.includes(member.name) ? 'حذف مدیر' : 'ارتقا به مدیر'}</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    });
+    document.getElementById('roomMembersList').innerHTML = html || '<p style="opacity:0.7;">هیچ عضوی نیست</p>';
+  } catch {
+    document.getElementById('roomMembersList').innerHTML = '<p style="color:#ff6b6b;">خطا در اتصال</p>';
+  }
+}
+
+// مدیریت کاربران
+async function kickUser(user) {
+  if (confirm(`آیا ${user} را از روم حذف کنیم؟`)) {
+    await manageUser('kick', user);
+  }
+}
+async function banUser(user) {
+  if (confirm(`آیا ${user} را بن کنیم؟`)) {
+    await manageUser('ban', user);
+  }
+}
+async function manageUser(action, user) {
+  try {
+    const res = await fetch(`${WORKER_URL}/manage-user`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({roomId: currentRoom, username, targetUser: user, action})
+    });
+    const data = await res.json();
+    if (data.success) {
+      loadRoomMembers();
+    } else {
+      alert(data.error || "خطا");
+    }
+  } catch {
+    alert("خطا در اتصال");
+  }
+}
+
+async function toggleAdmin(user) {
+  try {
+    const res = await fetch(`${WORKER_URL}/manage-admin`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({roomId: currentRoom, username, targetUser: user})
+    });
+    const data = await res.json();
+    if (data.success) {
+      loadRoomMembers();
+    } else {
+      alert(data.error || "خطا");
+    }
+  } catch {
+    alert("خطا در اتصال");
+  }
+}
+
+// ذخیره تنظیمات روم
+document.getElementById('saveRoomModeBtn').addEventListener('click', async () => {
+  const mode = document.querySelector('input[name="roomMode"]:checked').value;
+  try {
+    const res = await fetch(`${WORKER_URL}/change-room-mode`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({roomId: currentRoom, username, mode})
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('roomModeStatus').innerHTML = '<p style="color:#50fa7b;">تنظیمات ذخیره شد!</p>';
+    } else {
+      alert(data.error || "خطا");
+    }
+  } catch {
+    alert("خطا در اتصال");
   }
 });
 
