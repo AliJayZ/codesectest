@@ -435,7 +435,7 @@ footer {
     </div>
   </div>
 
-  <!-- صفحه انتظار جدید -->
+  <!-- صفحه انتظار -->
   <div class="card page" id="waiting-page">
     <div class="waiting-page">
       <div class="loader"></div>
@@ -456,7 +456,7 @@ let currentRoom = null;
 let username = localStorage.getItem('username') || null;
 let usernameChanges = parseInt(localStorage.getItem('usernameChanges') || '0');
 let isOwner = false;
-let pendingRoomId = null; // برای صفحه انتظار
+let pendingRoomId = null;
 
 // منوی همبرگری
 const hamburger = document.getElementById('hamburger');
