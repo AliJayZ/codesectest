@@ -172,7 +172,6 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 .page.active { display:block; }
 /* صفحه چت جدید */
 #roomTitle {
-  cursor:pointer;
   color:#4cc2ff;
   font-weight:bold;
   text-align:right;
@@ -430,7 +429,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
     <div id="roomModeStatus"></div>
   </div>
 
-  <!-- صفحه چت جدید -->
+  <!-- صفحه چت -->
   <div class="card page" id="chat-page">
     <div id="roomTitle">روم: ...</div>
     <div class="chat-messages" id="messages"></div>
@@ -611,10 +610,6 @@ async function checkPendingStatus() {
       enterRoom(pendingRoomId);
     } else if (!data.hasRequest) {
       pendingRoomId = null;
-      if (currentRoom === pendingRoomId) {
-        currentRoom = null;
-        document.getElementById('messages').innerHTML = '';
-      }
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById('join-room').classList.add('active');
       document.getElementById('joinStatus').innerHTML = '<p style="color:#ff6b6b;">درخواست شما توسط هاست رد شد</p>';
@@ -636,7 +631,7 @@ async function enterRoom(id) {
   setInterval(loadRoomData, 3000);
 }
 
-// لود روم با ویژگی‌های جدید
+// لود روم
 async function loadRoomData() {
   if (!currentRoom) return;
   try {
@@ -672,7 +667,7 @@ async function loadRoomData() {
       }
 
       const time = new Date(msg.time || Date.now()).toLocaleTimeString('fa-IR', {hour: '2-digit', minute:'2-digit'});
-      const otherMembers = data.members.filter(u => u !== username);
+      const otherMembers = data.members.filter(m => m.name !== username);
       const tick = msg.user === username ? (otherMembers.length > 0 ? '<span class="message-tick tick-read">✓✓</span>' : '<span class="message-tick tick-sent">✓</span>') : '';
 
       div.innerHTML = replyHtml + `
@@ -683,7 +678,7 @@ async function loadRoomData() {
 
       // کلیک برای خوانندگان
       div.addEventListener('click', () => {
-        const readers = data.members.filter(u => u !== msg.user);
+        const readers = data.members.filter(m => m.name !== msg.user).map(m => m.name);
         alert(`خوانده شده توسط: ${readers.length > 0 ? readers.join(', ') : 'هنوز کسی نخوانده'}`);
       });
 
@@ -695,7 +690,7 @@ async function loadRoomData() {
       div.addEventListener('touchend', (e) => {
         const touchEndX = e.changedTouches[0].clientX;
         const diff = touchStartX - touchEndX;
-        if (diff > 50) { // swipe راست
+        if (diff > 50) {
           replyTo = index;
           document.getElementById('messageInput').placeholder = 'در پاسخ به ' + msg.user + '...';
           document.getElementById('messageInput').focus();
@@ -721,7 +716,7 @@ function scrollToMessage(index) {
   }
 }
 
-// ارسال پیام با ریپلای
+// ارسال پیام
 document.getElementById('sendBtn').addEventListener('click', async () => {
   const input = document.getElementById('messageInput');
   const text = input.value.trim();
@@ -948,7 +943,7 @@ async function deleteRoom(roomId) {
   }
 }
 
-// کد اصلی ابزار رمزنگاری
+// کد رمزنگاری (بدون تغییر)
 const plainText = document.getElementById("plainText");
 const password = document.getElementById("password");
 const output = document.getElementById("output");
