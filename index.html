@@ -543,7 +543,7 @@ document.getElementById('createRoomBtn').addEventListener('click', async () => {
   }
 });
 
-// جوین روم
+// جوین روم – چک دقیق عضویت
 document.getElementById('joinRoomBtn').addEventListener('click', async () => {
   if (!username) return alert("ابتدا نام کاربری تنظیم کنید");
   const id = document.getElementById('joinRoomId').value.trim().toLowerCase();
@@ -576,7 +576,7 @@ function showWaitingPage() {
   setInterval(checkPendingStatus, 3000);
 }
 
-// چک وضعیت درخواست – جلوگیری کامل از دسترسی به چت
+// چک وضعیت درخواست – اصلاح شده برای درخواست جدید بعد از رد
 async function checkPendingStatus() {
   if (!pendingRoomId) return;
   try {
@@ -586,16 +586,22 @@ async function checkPendingStatus() {
     if (data.isMember) {
       pendingRoomId = null;
       enterRoom(pendingRoomId);
-    } else if (!data.hasRequest) {
-      pendingRoomId = null;
-      // خارج کردن از چت اگر اشتباها رفته باشه
-      if (currentRoom === pendingRoomId) {
-        currentRoom = null;
-        document.getElementById('messages').innerHTML = '';
+    } else if (data.mode === "permission" && !data.isMember) {
+      // اگر با اجازه باشه و عضو نباشه → دوباره درخواست بده (اگر قبلاً رد شده)
+      const joinRes = await fetch(`${WORKER_URL}/join-room`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({roomId: pendingRoomId, username})
+      });
+      const joinData = await joinRes.json();
+      if (joinData.status === "pending") {
+        // همچنان منتظر
+      } else {
+        pendingRoomId = null;
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('join-room').classList.add('active');
+        document.getElementById('joinStatus').innerHTML = '<p style="color:#ff6b6b;">درخواست شما توسط هاست رد شد</p>';
       }
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById('join-room').classList.add('active');
-      document.getElementById('joinStatus').innerHTML = '<p style="color:#ff6b6b;">درخواست شما توسط هاست رد شد</p>';
     }
   } catch {
     console.log("خطا در چک وضعیت");
@@ -613,13 +619,21 @@ async function enterRoom(id) {
   setInterval(loadRoomData, 3000);
 }
 
-// لود اطلاعات روم
+// لود اطلاعات روم – چک عضویت برای خروج در صورت عدم عضویت
 async function loadRoomData() {
   if (!currentRoom) return;
   try {
     const res = await fetch(`${WORKER_URL}/room-data?roomId=${currentRoom}&username=${username}`);
     if (!res.ok) return;
     const data = await res.json();
+    if (!data.isMember) {
+      currentRoom = null;
+      pendingRoomId = null;
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('join-room').classList.add('active');
+      document.getElementById('joinStatus').innerHTML = '<p style="color:#ff6b6b;">دسترسی شما به این روم قطع شده است</p>';
+      return;
+    }
     isOwner = data.isOwner;
     document.getElementById('roomSettingsMenu').style.display = isOwner ? 'block' : 'none';
     const container = document.getElementById('messages');
