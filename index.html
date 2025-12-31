@@ -262,7 +262,7 @@ footer {
   padding:10px;
   font-size:14px;
 }
-/* صفحه انتظار جدید */
+/* صفحه انتظار */
 .waiting-page {
   text-align:center;
   padding:60px 20px;
@@ -425,7 +425,7 @@ footer {
       <button class="positive-btn" id="sendBtn">ارسال</button>
     </div>
   </div>
-  <!-- صفحه انتظار جدید -->
+  <!-- صفحه انتظار -->
   <div class="card page" id="waiting-page">
     <div class="waiting-page">
       <div class="loader"></div>
@@ -460,7 +460,7 @@ document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
     sidebar.classList.remove('active');
   });
 });
-// تنظیم نام کاربری – فقط یک بار و غیرقابل تغییر
+// تنظیم نام کاربری – فقط یک بار
 document.getElementById('saveUsernameBtn').addEventListener('click', () => {
   if (username) {
     document.getElementById('usernameStatus').innerHTML = '<p style="color:#ff6b6b;">نام کاربری قبلاً تنظیم شده و غیرقابل تغییر است!</p>';
@@ -476,7 +476,7 @@ document.getElementById('saveUsernameBtn').addEventListener('click', () => {
   document.getElementById('usernameStatus').innerHTML = '<p style="color:#50fa7b;">نام کاربری ذخیره شد: ' + name + '</p>';
   document.getElementById('usernameMenuItem').style.display = 'none';
 });
-// چک آیدی روم از Worker
+// چک آیدی روم
 document.getElementById('newRoomId').addEventListener('input', async () => {
   const id = document.getElementById('newRoomId').value.trim().toLowerCase();
   const status = document.getElementById('roomIdStatus');
@@ -520,7 +520,7 @@ document.getElementById('createRoomBtn').addEventListener('click', async () => {
     alert("خطا در اتصال به سرور");
   }
 });
-// جوین روم
+// جوین روم – با صفحه انتظار برای pending
 document.getElementById('joinRoomBtn').addEventListener('click', async () => {
   if (!username) return alert("ابتدا نام کاربری تنظیم کنید");
   const id = document.getElementById('joinRoomId').value.trim().toLowerCase();
@@ -533,8 +533,10 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
     });
     const data = await res.json();
     if (data.success) {
+      // قبلاً عضو است → مستقیم وارد چت
       enterRoom(id);
     } else if (data.status === "pending") {
+      // درخواست جدید → صفحه انتظار
       pendingRoomId = id;
       showWaitingPage();
     } else {
@@ -571,7 +573,7 @@ async function checkPendingStatus() {
     console.log("خطا در چک وضعیت");
   }
 }
-// ورود به روم
+// ورود به روم (فقط وقتی عضو شد)
 async function enterRoom(id) {
   currentRoom = id;
   pendingRoomId = null;
@@ -681,7 +683,7 @@ document.getElementById('saveRoomModeBtn').addEventListener('click', async () =>
     alert("خطا در اتصال به سرور");
   }
 });
-// کد اصلی ابزار رمزنگاری – دقیقاً همون قبلی
+// کد اصلی ابزار رمزنگاری – بدون تغییر
 const plainText = document.getElementById("plainText");
 const password = document.getElementById("password");
 const output = document.getElementById("output");
