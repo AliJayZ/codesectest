@@ -40,15 +40,12 @@ textarea {
   resize:none;
   font-family:Consolas,monospace;
 }
-/* دکمه‌های Liquid Metal (Paste, Copy, چشم) */
+/* دکمه‌های Liquid Metal */
 .liquid-btn, .action-btn {
   background:linear-gradient(145deg, #2a2f3f, #1a1d28);
   border:none;
   border-radius:50%;
-  box-shadow:
-    0 6px 20px rgba(0,0,0,0.6),
-    inset 0 3px 12px rgba(255,255,255,0.15),
-    inset 0 -3px 12px rgba(0,0,0,0.4);
+  box-shadow:0 6px 20px rgba(0,0,0,0.6), inset 0 3px 12px rgba(255,255,255,0.15), inset 0 -3px 12px rgba(0,0,0,0.4);
   cursor:pointer;
   color:#fff;
   transition: all 0.3s ease;
@@ -57,54 +54,22 @@ textarea {
   justify-content:center;
   animation: pulse 4s infinite ease-in-out;
 }
-.liquid-btn:hover, .action-btn:hover,
-.liquid-btn:active, .action-btn:active {
+.liquid-btn:hover, .action-btn:hover {
   transform:scale(1.15);
   background:linear-gradient(145deg, #3a4055, #252a38);
-  box-shadow:
-    0 10px 30px rgba(76,194,255,0.5),
-    inset 0 4px 15px rgba(76,194,255,0.3);
+  box-shadow:0 10px 30px rgba(76,194,255,0.5), inset 0 4px 15px rgba(76,194,255,0.3);
 }
 @keyframes pulse {
   0%, 100% { box-shadow: 0 6px 20px rgba(0,0,0,0.6), inset 0 3px 12px rgba(255,255,255,0.15); }
   50% { box-shadow: 0 8px 25px rgba(76,194,255,0.2), inset 0 4px 15px rgba(255,255,255,0.2); }
 }
-.action-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 16px 0;
-}
-.action-btn {
-  width:80px;
-  height:80px;
-  font-size:20px;
-  font-weight:bold;
-}
-.eye-group {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 8px;
-}
-.liquid-btn {
-  width:50px;
-  height:50px;
-  font-size:24px;
-}
-/* رادیو باتن‌های ساده و دایره‌ای */
-.mode-selector {
-  display: flex;
-  justify-content: center;
-  gap: 50px;
-  margin: 20px 0;
-  font-size: 15px;
-}
-.mode-option {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
+.action-group { display: flex; flex-direction: column; align-items: center; margin: 16px 0; }
+.action-btn { width:80px; height:80px; font-size:20px; font-weight:bold; }
+.eye-group { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.liquid-btn { width:50px; height:50px; font-size:24px; }
+/* رادیو باتن‌ها */
+.mode-selector { display: flex; justify-content: center; gap: 50px; margin: 20px 0; font-size: 15px; }
+.mode-option { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .mode-option input[type="radio"] {
   appearance: none;
   width: 24px;
@@ -115,9 +80,7 @@ textarea {
   position: relative;
   transition: all 0.3s;
 }
-.mode-option input[type="radio"]:checked {
-  border-color: #4cc2ff;
-}
+.mode-option input[type="radio"]:checked { border-color: #4cc2ff; }
 .mode-option input[type="radio"]::before {
   content: "";
   position: absolute;
@@ -130,14 +93,8 @@ textarea {
   transform: translate(-50%, -50%) scale(0);
   transition: transform 0.3s;
 }
-.mode-option input[type="radio"]:checked::before {
-  transform: translate(-50%, -50%) scale(1);
-}
-.buttons {
-  display:flex;
-  gap:14px;
-  margin:24px 0;
-}
+.mode-option input[type="radio"]:checked::before { transform: translate(-50%, -50%) scale(1); }
+.buttons { display:flex; gap:14px; margin:24px 0; }
 button {
   flex:1;
   padding:14px;
@@ -148,25 +105,10 @@ button {
   color:#fff;
   background:#4cc2ff;
 }
-#decryptBtn {
-  background:#ff4c4c;
-}
-.help {
-  margin-top: 30px;
-  padding: 16px;
-  background: rgba(255,255,255,0.05);
-  border-radius: 16px;
-  font-size: 13px;
-  line-height: 1.6;
-  opacity: 0.9;
-}
+#decryptBtn { background:#ff4c4c; }
+.help { margin-top: 30px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 16px; font-size: 13px; line-height: 1.6; opacity: 0.9; }
 .help h3 { text-align: center; margin: 12px 0 8px; }
-footer {
-  margin-top:16px;
-  text-align:center;
-  font-size:12px;
-  opacity:.6;
-}
+footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 .note.warning {
   color:#ff4444;
   border:1px solid #ff4444;
@@ -176,7 +118,6 @@ footer {
   margin-top:10px;
   font-size:13px;
 }
-.note.success { color:#50fa7b; }
 /* منوی همبرگری */
 .hamburger {
   position:fixed;
@@ -229,7 +170,27 @@ footer {
 .sidebar-item:hover { background:rgba(76,194,255,0.2); }
 .page { display:none; }
 .page.active { display:block; }
-/* صفحه چت */
+/* صفحه چت جدید */
+#roomTitle {
+  cursor:pointer;
+  color:#4cc2ff;
+  font-weight:bold;
+  text-align:right;
+  margin-bottom:10px;
+  font-size:18px;
+}
+#onlineUsers {
+  margin-bottom:15px;
+  padding:10px;
+  background:rgba(255,255,255,0.05);
+  border-radius:12px;
+  font-size:14px;
+  display:none;
+}
+.online-user {
+  display:block;
+  padding:2px 0;
+}
 .chat-messages {
   height:55vh;
   overflow-y:auto;
@@ -242,31 +203,66 @@ footer {
   padding:12px;
   border-radius:18px;
   background:rgba(255,255,255,0.1);
+  position:relative;
+  cursor:pointer;
 }
-.message.sent { margin-left:auto; background:#4cc2ff; }
-.message.received { margin-right:auto; background:rgba(255,255,255,0.15); }
-.message-user { font-size:12px; opacity:0.8; margin-bottom:4px; }
-.request-message {
-  background:rgba(255,255,0,0.1);
-  border:1px solid #ffff00;
-  text-align:center;
-  padding:15px;
+.message.sent { 
+  margin-left:auto; 
+  background:#4cc2ff; 
 }
-.request-buttons {
+.message.received { 
+  margin-right:auto; 
+  background:rgba(255,255,255,0.15); 
+}
+.message-user { 
+  font-size:12px; 
+  opacity:0.8; 
+  margin-bottom:4px; 
+}
+.message-time {
+  font-size:11px;
+  opacity:0.7;
+  margin-top:6px;
+  text-align:left;
+}
+.message-tick {
+  font-size:12px;
+  margin-right:6px;
+}
+.tick-sent { color:#ccc; }
+.tick-read { color:#fff; font-weight:bold; }
+/* ریپلای */
+.reply-box {
+  border-right:4px solid #4cc2ff;
+  padding-right:10px;
+  margin-bottom:8px;
+  opacity:0.8;
+  font-size:13px;
+}
+.reply-user { font-weight:bold; font-size:12px; }
+.reply-text { opacity:0.8; }
+/* ورودی پیام */
+.message-input-group {
   display:flex;
+  align-items:center;
   gap:10px;
-  margin-top:10px;
 }
-.request-buttons button {
+#messageInput {
   flex:1;
-  padding:10px;
-  font-size:14px;
+}
+#sendBtn {
+  width:50px;
+  height:50px;
+  border-radius:50%;
+  font-size:24px;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#4cc2ff;
 }
 /* صفحه انتظار */
-.waiting-page {
-  text-align:center;
-  padding:60px 20px;
-}
+.waiting-page { text-align:center; padding:60px 20px; }
 .loader {
   width:100px;
   height:100px;
@@ -276,24 +272,11 @@ footer {
   animation: spin 1.2s linear infinite;
   margin:40px auto;
 }
-@keyframes spin {
-  0% { transform:rotate(0deg); }
-  100% { transform:rotate(360deg); }
-}
-.waiting-page h3 {
-  font-size:26px;
-  margin:20px 0;
-  color:#4cc2ff;
-}
-.waiting-page p {
-  font-size:17px;
-  opacity:0.9;
-  line-height:1.6;
-}
+@keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
+.waiting-page h3 { font-size:26px; margin:20px 0; color:#4cc2ff; }
+.waiting-page p { font-size:17px; opacity:0.9; line-height:1.6; }
 /* مدیریت روم‌ها */
-.room-list {
-  margin-top:20px;
-}
+.room-list { margin-top:20px; }
 .room-item {
   display:flex;
   justify-content:space-between;
@@ -303,16 +286,7 @@ footer {
   border-radius:12px;
   margin-bottom:10px;
 }
-.room-actions button {
-  padding:8px 12px;
-  font-size:13px;
-  margin-left:8px;
-}
-#deleteConfirm {
-  color:#ff4444;
-  font-size:14px;
-  margin-top:10px;
-}
+.room-actions button { padding:8px 12px; font-size:13px; margin-left:8px; }
 </style>
 </head>
 <body>
@@ -447,15 +421,14 @@ footer {
     <div id="roomModeStatus"></div>
   </div>
 
-  <!-- صفحه چت -->
+  <!-- صفحه چت جدید -->
   <div class="card page" id="chat-page">
-    <h2 id="roomTitle">روم: ...</h2>
+    <div id="roomTitle">روم: ...</div>
+    <div id="onlineUsers">در حال بارگذاری...</div>
     <div class="chat-messages" id="messages"></div>
-    <div class="field">
+    <div class="message-input-group">
       <input type="text" id="messageInput" placeholder="پیام خود را بنویسید...">
-    </div>
-    <div class="buttons">
-      <button id="sendBtn">ارسال</button>
+      <button id="sendBtn">➤</button>
     </div>
   </div>
 
@@ -490,6 +463,7 @@ let username = localStorage.getItem('username') || null;
 let usernameChanges = parseInt(localStorage.getItem('usernameChanges') || '0');
 let isOwner = false;
 let pendingRoomId = null;
+let replyTo = null;
 
 // منوی همبرگری
 const hamburger = document.getElementById('hamburger');
@@ -644,11 +618,18 @@ async function enterRoom(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('chat-page').classList.add('active');
   document.getElementById('roomTitle').textContent = `روم: ${id}`;
+  document.getElementById('roomTitle').onclick = toggleOnlineUsers;
   loadRoomData();
   setInterval(loadRoomData, 3000);
 }
 
-// لود اطلاعات روم
+// لیست آنلاین
+function toggleOnlineUsers() {
+  const el = document.getElementById('onlineUsers');
+  el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+
+// لود روم با ویژگی‌های جدید
 async function loadRoomData() {
   if (!currentRoom) return;
   try {
@@ -664,103 +645,109 @@ async function loadRoomData() {
     }
     isOwner = data.isOwner;
     document.getElementById('roomSettingsMenu').style.display = isOwner ? 'block' : 'none';
+
+    // لیست آنلاین (همه ممبرها آنلاین فرض می‌شوند)
+    let onlineHtml = '<strong>افراد آنلاین (' + (data.members?.length || 0) + '):</strong><br>';
+    (data.members || []).forEach(u => {
+      onlineHtml += `<span class="online-user">• ${u}${u === username ? ' (شما)' : ''}</span><br>`;
+    });
+    document.getElementById('onlineUsers').innerHTML = onlineHtml;
+
     const container = document.getElementById('messages');
     container.innerHTML = '';
-    (data.messages || []).forEach(msg => {
+    (data.messages || []).forEach((msg, index) => {
       const div = document.createElement('div');
       div.className = 'message ' + (msg.user === username ? 'sent' : 'received');
-      div.innerHTML = `<div class="message-user">${msg.user}</div>${msg.text}`;
+
+      let replyHtml = '';
+      if (msg.replyTo !== undefined && data.messages[msg.replyTo]) {
+        const orig = data.messages[msg.replyTo];
+        replyHtml = `
+          <div class="reply-box" onclick="scrollToMessage(${msg.replyTo})">
+            <div class="reply-user">${orig.user}</div>
+            <div class="reply-text">${orig.text.substring(0,50)}${orig.text.length > 50 ? '...' : ''}</div>
+          </div>
+        `;
+      }
+
+      const time = new Date(msg.time || Date.now()).toLocaleTimeString('fa-IR', {hour: '2-digit', minute:'2-digit'});
+      const tick = msg.user === username ? `<span class="message-tick tick-read">✓✓</span>` : '';
+
+      div.innerHTML = replyHtml + `
+        <div class="message-user">${msg.user}</div>
+        ${msg.text}
+        <div class="message-time">${time} ${tick}</div>
+      `;
+
+      // کلیک برای خوانندگان
+      div.addEventListener('click', () => {
+        alert(`خوانده شده توسط: ${data.members.join(', ')}`);
+      });
+
+      // ریپلای با long press
+      let timer;
+      div.addEventListener('mousedown', () => {
+        timer = setTimeout(() => {
+          if (confirm('ریپلای به این پیام؟')) {
+            replyTo = index;
+            document.getElementById('messageInput').placeholder = 'در پاسخ به ' + msg.user + '...';
+          }
+        }, 500);
+      });
+      div.addEventListener('mouseup', () => clearTimeout(timer));
+      div.addEventListener('mouseleave', () => clearTimeout(timer));
+
       container.appendChild(div);
     });
-    if (isOwner && data.requests && data.requests.length > 0) {
-      data.requests.forEach(req => addRequestMessage(req));
-    }
     container.scrollTop = container.scrollHeight;
-  } catch {
-    console.log("خطا در لود اطلاعات روم");
+  } catch (e) {
+    console.log("خطا در لود روم");
   }
 }
 
-// اضافه کردن پیام درخواست
-function addRequestMessage(requestUser) {
-  const container = document.getElementById('messages');
-  const div = document.createElement('div');
-  div.className = 'message request-message';
-  div.innerHTML = `
-    <div>${requestUser} درخواست ورود به روم را دارد</div>
-    <div class="request-buttons">
-      <button onclick="approveRequest('${requestUser}')">اجازه بده</button>
-      <button onclick="rejectRequest('${requestUser}')">رد کن</button>
-    </div>
-  `;
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
+function scrollToMessage(index) {
+  const msgs = document.querySelectorAll('.message');
+  if (msgs[index]) {
+    msgs[index].scrollIntoView({behavior: 'smooth', block: 'center'});
+    msgs[index].style.background = msgs[index].classList.contains('sent') ? '#5dd3ff' : 'rgba(255,255,255,0.3)';
+    setTimeout(() => {
+      msgs[index].style.background = msgs[index].classList.contains('sent') ? '#4cc2ff' : 'rgba(255,255,255,0.15)';
+    }, 1000);
+  }
 }
 
-// تأیید/رد درخواست
-async function approveRequest(user) {
-  await fetch(`${WORKER_URL}/approve-request`, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({roomId: currentRoom, username, targetUser: user})
-  });
-  loadRoomData();
-}
-async function rejectRequest(user) {
-  await fetch(`${WORKER_URL}/reject-request`, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({roomId: currentRoom, username, targetUser: user})
-  });
-  loadRoomData();
-}
-
-// ارسال پیام
+// ارسال پیام با ریپلای
 document.getElementById('sendBtn').addEventListener('click', async () => {
   const input = document.getElementById('messageInput');
-  if (!input.value.trim()) return;
+  const text = input.value.trim();
+  if (!text) {
+    if (replyTo !== null) {
+      replyTo = null;
+      input.placeholder = "پیام خود را بنویسید...";
+    }
+    return;
+  }
   try {
     await fetch(`${WORKER_URL}/send-message`, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({roomId: currentRoom, username, text: input.value})
+      body: JSON.stringify({
+        roomId: currentRoom,
+        username,
+        text,
+        replyTo: replyTo || undefined
+      })
     });
     input.value = '';
+    replyTo = null;
+    input.placeholder = "پیام خود را بنویسید...";
     loadRoomData();
   } catch {
-    alert("خطا در ارسال پیام");
+    alert("خطا در ارسال");
   }
 });
 
-// تنظیمات روم
-document.getElementById('roomSettingsMenu').addEventListener('click', async () => {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('room-settings-page').classList.add('active');
-  document.getElementById('currentRoomName').textContent = currentRoom;
-  const res = await fetch(`${WORKER_URL}/room-data?roomId=${currentRoom}&username=${username}`);
-  const data = await res.json();
-  document.querySelector(`input[name="roomMode"][value="${data.mode}"]`).checked = true;
-});
-document.getElementById('saveRoomModeBtn').addEventListener('click', async () => {
-  const mode = document.querySelector('input[name="roomMode"]:checked').value;
-  try {
-    const res = await fetch(`${WORKER_URL}/change-room-mode`, {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({roomId: currentRoom, username, mode})
-    });
-    const data = await res.json();
-    if (data.success) {
-      document.getElementById('roomModeStatus').innerHTML = '<p style="color:#50fa7b;">تنظیمات روم ذخیره شد!</p>';
-    } else {
-      alert(data.error || "خطا در ذخیره تنظیمات");
-    }
-  } catch {
-    alert("خطا در اتصال به سرور");
-  }
-});
-
-// بارگذاری روم‌های ساخته شده توسط کاربر
+// مدیریت روم‌ها
 async function loadMyRooms() {
   if (!username) {
     document.getElementById('myRoomsList').innerHTML = '<p style="color:#ff6b6b;">ابتدا نام کاربری تنظیم کنید</p>';
@@ -795,7 +782,6 @@ async function loadMyRooms() {
   }
 }
 
-// ویرایش نام روم
 async function editRoomName(oldId) {
   const newId = prompt("آیدی جدید روم را وارد کنید (انگلیسی، حداقل 3 کاراکتر):", oldId);
   if (!newId || newId === oldId) return;
@@ -825,7 +811,6 @@ async function editRoomName(oldId) {
   }
 }
 
-// حذف روم
 async function deleteRoom(roomId) {
   if (!confirm(`آیا مطمئن هستید که می‌خواهید روم "${roomId}" را برای همیشه حذف کنید؟`)) return;
   try {
@@ -851,7 +836,7 @@ async function deleteRoom(roomId) {
   }
 }
 
-// کد اصلی ابزار رمزنگاری – بدون تغییر
+// کد اصلی ابزار رمزنگاری
 const plainText = document.getElementById("plainText");
 const password = document.getElementById("password");
 const output = document.getElementById("output");
