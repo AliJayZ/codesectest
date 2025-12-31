@@ -290,6 +290,29 @@ footer {
   opacity:0.9;
   line-height:1.6;
 }
+/* مدیریت روم‌ها */
+.room-list {
+  margin-top:20px;
+}
+.room-item {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:rgba(255,255,255,0.05);
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:10px;
+}
+.room-actions button {
+  padding:8px 12px;
+  font-size:13px;
+  margin-left:8px;
+}
+#deleteConfirm {
+  color:#ff4444;
+  font-size:14px;
+  margin-top:10px;
+}
 </style>
 </head>
 <body>
@@ -306,6 +329,7 @@ footer {
   <div class="sidebar-item" data-page="home">🏠 خانه (ابزار رمزنگاری)</div>
   <div class="sidebar-item" data-page="create-room">➕ ساخت روم جدید</div>
   <div class="sidebar-item" data-page="join-room">🔑 ورود به روم</div>
+  <div class="sidebar-item" data-page="manage-rooms">📂 مدیریت روم‌ها</div>
   <div class="sidebar-item" data-page="room-settings-page" id="roomSettingsMenu" style="display:none;">⚙️ تنظیمات روم</div>
   <div class="sidebar-item" data-page="username-page" id="usernameMenuItem">👤 تنظیم نام کاربری</div>
 </div>
@@ -445,6 +469,15 @@ footer {
     </div>
   </div>
 
+  <!-- صفحه مدیریت روم‌ها -->
+  <div class="card page" id="manage-rooms">
+    <h2>مدیریت روم‌ها</h2>
+    <p>روم‌هایی که شما ساخته‌اید:</p>
+    <div id="myRoomsList" class="room-list">
+      <p style="text-align:center;opacity:0.7;">در حال بارگذاری...</p>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -473,13 +506,16 @@ document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
     document.getElementById(item.dataset.page).classList.add('active');
     hamburger.classList.remove('active');
     sidebar.classList.remove('active');
+    if (item.dataset.page === "manage-rooms") {
+      loadMyRooms();
+    }
   });
 });
 
 // تنظیم نام کاربری
 document.getElementById('saveUsernameBtn').addEventListener('click', () => {
   if (usernameChanges >= 2) {
-    document.getElementById('usernameStatus').innerHTML = '<p style="color:#ff6b6b;">نام کاربری دیگر قابل تغییر نیست (حداکثر 2 بار)!</p>';
+    document.getElementById('usernameStatus').innerHTML = '<p style="color:#ff6b6b;">نام کاربری دیگر قابل تغییر نیست!</p>';
     return;
   }
   const name = document.getElementById('usernameInput').value.trim();
@@ -543,7 +579,7 @@ document.getElementById('createRoomBtn').addEventListener('click', async () => {
   }
 });
 
-// جوین روم – چک دقیق عضویت
+// جوین روم
 document.getElementById('joinRoomBtn').addEventListener('click', async () => {
   if (!username) return alert("ابتدا نام کاربری تنظیم کنید");
   const id = document.getElementById('joinRoomId').value.trim().toLowerCase();
@@ -576,7 +612,7 @@ function showWaitingPage() {
   setInterval(checkPendingStatus, 3000);
 }
 
-// چک وضعیت درخواست – اصلاح شده برای درخواست جدید بعد از رد
+// چک وضعیت درخواست
 async function checkPendingStatus() {
   if (!pendingRoomId) return;
   try {
@@ -586,22 +622,15 @@ async function checkPendingStatus() {
     if (data.isMember) {
       pendingRoomId = null;
       enterRoom(pendingRoomId);
-    } else if (data.mode === "permission" && !data.isMember) {
-      // اگر با اجازه باشه و عضو نباشه → دوباره درخواست بده (اگر قبلاً رد شده)
-      const joinRes = await fetch(`${WORKER_URL}/join-room`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({roomId: pendingRoomId, username})
-      });
-      const joinData = await joinRes.json();
-      if (joinData.status === "pending") {
-        // همچنان منتظر
-      } else {
-        pendingRoomId = null;
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById('join-room').classList.add('active');
-        document.getElementById('joinStatus').innerHTML = '<p style="color:#ff6b6b;">درخواست شما توسط هاست رد شد</p>';
+    } else if (!data.hasRequest) {
+      pendingRoomId = null;
+      if (currentRoom === pendingRoomId) {
+        currentRoom = null;
+        document.getElementById('messages').innerHTML = '';
       }
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('join-room').classList.add('active');
+      document.getElementById('joinStatus').innerHTML = '<p style="color:#ff6b6b;">درخواست شما توسط هاست رد شد</p>';
     }
   } catch {
     console.log("خطا در چک وضعیت");
@@ -619,7 +648,7 @@ async function enterRoom(id) {
   setInterval(loadRoomData, 3000);
 }
 
-// لود اطلاعات روم – چک عضویت برای خروج در صورت عدم عضویت
+// لود اطلاعات روم
 async function loadRoomData() {
   if (!currentRoom) return;
   try {
@@ -628,7 +657,6 @@ async function loadRoomData() {
     const data = await res.json();
     if (!data.isMember) {
       currentRoom = null;
-      pendingRoomId = null;
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById('join-room').classList.add('active');
       document.getElementById('joinStatus').innerHTML = '<p style="color:#ff6b6b;">دسترسی شما به این روم قطع شده است</p>';
@@ -732,7 +760,98 @@ document.getElementById('saveRoomModeBtn').addEventListener('click', async () =>
   }
 });
 
-// کد اصلی ابزار رمزنگاری
+// بارگذاری روم‌های ساخته شده توسط کاربر
+async function loadMyRooms() {
+  if (!username) {
+    document.getElementById('myRoomsList').innerHTML = '<p style="color:#ff6b6b;">ابتدا نام کاربری تنظیم کنید</p>';
+    return;
+  }
+  try {
+    const res = await fetch(`${WORKER_URL}/my-rooms?username=${username}`);
+    if (!res.ok) {
+      document.getElementById('myRoomsList').innerHTML = '<p style="color:#ff6b6b;">خطا در بارگذاری روم‌ها</p>';
+      return;
+    }
+    const rooms = await res.json();
+    if (rooms.length === 0) {
+      document.getElementById('myRoomsList').innerHTML = '<p style="opacity:0.7;">هنوز رومی نساخته‌اید</p>';
+      return;
+    }
+    let html = '';
+    rooms.forEach(room => {
+      html += `
+        <div class="room-item">
+          <span>${room}</span>
+          <div class="room-actions">
+            <button onclick="editRoomName('${room}')">ویرایش</button>
+            <button style="background:#ff4444;" onclick="deleteRoom('${room}')">حذف</button>
+          </div>
+        </div>
+      `;
+    });
+    document.getElementById('myRoomsList').innerHTML = html;
+  } catch {
+    document.getElementById('myRoomsList').innerHTML = '<p style="color:#ff6b6b;">خطا در اتصال</p>';
+  }
+}
+
+// ویرایش نام روم
+async function editRoomName(oldId) {
+  const newId = prompt("آیدی جدید روم را وارد کنید (انگلیسی، حداقل 3 کاراکتر):", oldId);
+  if (!newId || newId === oldId) return;
+  if (newId.length < 3 || !/^[a-z0-9_-]+$/.test(newId)) {
+    alert("آیدی نامعتبر است");
+    return;
+  }
+  try {
+    const res = await fetch(`${WORKER_URL}/rename-room`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({oldRoomId: oldId, newRoomId: newId, username})
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert("نام روم با موفقیت تغییر کرد!");
+      loadMyRooms();
+      if (currentRoom === oldId) {
+        currentRoom = newId;
+        document.getElementById('roomTitle').textContent = `روم: ${newId}`;
+      }
+    } else {
+      alert(data.error || "خطا در تغییر نام");
+    }
+  } catch {
+    alert("خطا در اتصال");
+  }
+}
+
+// حذف روم
+async function deleteRoom(roomId) {
+  if (!confirm(`آیا مطمئن هستید که می‌خواهید روم "${roomId}" را برای همیشه حذف کنید؟`)) return;
+  try {
+    const res = await fetch(`${WORKER_URL}/delete-room`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({roomId, username})
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert("روم با موفقیت حذف شد!");
+      loadMyRooms();
+      if (currentRoom === roomId) {
+        currentRoom = null;
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('home').classList.add('active');
+      }
+    } else {
+      alert(data.error || "خطا در حذف روم");
+    }
+  } catch {
+    alert("خطا در اتصال");
+  }
+}
+
+// کد اصلی ابزار رمزنگاری – بدون تغییر
 const plainText = document.getElementById("plainText");
 const password = document.getElementById("password");
 const output = document.getElementById("output");
