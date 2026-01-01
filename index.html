@@ -230,26 +230,51 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 }
 .reply-user { font-weight:bold; font-size:12px; }
 .reply-text { opacity:0.8; }
-/* ورودی پیام */
+/* نوار ورودی چت جدید مثل تلگرام */
 .message-input-group {
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:8px;
+  background:rgba(255,255,255,0.08);
+  padding:10px 14px;
+  border-radius:30px;
+  margin-top:15px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.2);
+}
+.message-input-group .attach-btn {
+  width:36px;
+  height:36px;
+  background:transparent;
+  color:#aaa;
+  font-size:20px;
+  border:none;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 #messageInput {
   flex:1;
-  width: calc(100% - 50px);
+  background:transparent;
+  border:none;
+  outline:none;
+  color:#fff;
+  font-size:15px;
+  padding:0;
 }
 #sendBtn {
   width:40px;
   height:40px;
   border-radius:50%;
-  font-size:18px;
+  font-size:20px;
   padding:0;
   display:flex;
   align-items:center;
   justify-content:center;
   background:#4cc2ff;
+  border:none;
+  cursor:pointer;
+  box-shadow:0 2px 8px rgba(76,194,255,0.4);
 }
 /* صفحه انتظار */
 .waiting-page { text-align:center; padding:60px 20px; }
@@ -444,8 +469,8 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
       <button id="saveRoomModeBtn">ذخیره تنظیمات</button>
     </div>
     <div id="roomModeStatus"></div>
-    <h3>درخواست‌های ورود</h3>
-    <div id="requestsList" class="room-list">
+    <h3 style="margin-top:30px;">درخواست‌های ورود</h3>
+    <div id="requestsList">
       <p style="text-align:center;opacity:0.7;">در حال بارگذاری...</p>
     </div>
   </div>
@@ -455,7 +480,10 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
     <div id="roomTitle">روم: ...</div>
     <div class="chat-messages" id="messages"></div>
     <div class="message-input-group">
+      <button class="attach-btn">📎</button>
       <input type="text" id="messageInput" placeholder="پیام خود را بنویسید...">
+      <button class="attach-btn">🎤</button>
+      <button class="attach-btn">GIF</button>
       <button id="sendBtn">➤</button>
     </div>
   </div>
@@ -698,13 +726,11 @@ async function loadRoomData() {
         <div class="message-time">${time} ${tick}</div>
       `;
 
-      // کلیک برای خوانندگان
       div.addEventListener('click', () => {
         const readers = data.members.filter(m => m.name !== msg.user).map(m => m.name);
         alert(`خوانده شده توسط: ${readers.length > 0 ? readers.join(', ') : 'هنوز کسی نخوانده'}`);
       });
 
-      // ریپلای با swipe راست
       let touchStartX = 0;
       div.addEventListener('touchstart', (e) => {
         touchStartX = e.touches[0].clientX;
@@ -785,7 +811,7 @@ async function loadRoomMembers() {
     const admins = data.admins || [];
     const isAdmin = data.isOwner || admins.includes(username);
     const now = Date.now();
-    const ONLINE_THRESHOLD = 300000; // 5 دقیقه
+    const ONLINE_THRESHOLD = 300000;
 
     let html = '';
     data.members.forEach(member => {
@@ -900,14 +926,14 @@ async function loadRequests() {
       });
       document.getElementById('requestsList').innerHTML = html || '<p style="opacity:0.7;">هیچ درخواستی نیست</p>';
     } else {
-      document.getElementById('requestsList').innerHTML = '<p style="color:#ff6b6b;">فقط هاست می‌تواند درخواست‌ها را ببیند</p>';
+      document.getElementById('requestsList').innerHTML = '<p style="opacity:0.7;">فقط هاست می‌تواند درخواست‌ها را ببیند</p>';
     }
   } catch {
     document.getElementById('requestsList').innerHTML = '<p style="color:#ff6b6b;">خطا در اتصال</p>';
   }
 }
 
-// تأیید درخواست
+// تأیید/رد درخواست
 async function approveRequest(user) {
   try {
     const res = await fetch(`${WORKER_URL}/approve-request`, {
@@ -916,17 +942,9 @@ async function approveRequest(user) {
       body: JSON.stringify({roomId: currentRoom, username, targetUser: user})
     });
     const data = await res.json();
-    if (data.success) {
-      loadRequests();
-    } else {
-      alert(data.error || "خطا");
-    }
-  } catch {
-    alert("خطا در اتصال");
-  }
+    if (data.success) loadRequests();
+  } catch { alert("خطا"); }
 }
-
-// رد درخواست
 async function rejectRequest(user) {
   try {
     const res = await fetch(`${WORKER_URL}/reject-request`, {
@@ -935,14 +953,8 @@ async function rejectRequest(user) {
       body: JSON.stringify({roomId: currentRoom, username, targetUser: user})
     });
     const data = await res.json();
-    if (data.success) {
-      loadRequests();
-    } else {
-      alert(data.error || "خطا");
-    }
-  } catch {
-    alert("خطا در اتصال");
-  }
+    if (data.success) loadRequests();
+  } catch { alert("خطا"); }
 }
 
 // مدیریت روم‌ها
@@ -1034,7 +1046,7 @@ async function deleteRoom(roomId) {
   }
 }
 
-// کد رمزنگاری
+// کد رمزنگاری (بدون تغییر)
 const plainText = document.getElementById("plainText");
 const password = document.getElementById("password");
 const output = document.getElementById("output");
