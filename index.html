@@ -5,12 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>CodeSec - Secure Messenger</title>
 <style>
-* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html, body { overflow-y: auto; overflow-x: hidden; }
-::-webkit-scrollbar { width:0; height:0; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
+html, body { overflow-x:hidden; min-height:100vh; }
+::-webkit-scrollbar { width:0; }
 body {
-  margin:0;
-  min-height:100vh;
   background:#0b0e17;
   font-family:Tahoma,sans-serif;
   color:#fff;
@@ -22,10 +20,8 @@ body {
   border-radius:20px;
   padding:20px;
 }
-h2 { text-align:center; margin-bottom:20px; }
-.field {
-  margin-bottom:18px;
-}
+h2 { text-align:center; margin-bottom:20px; color:#4cc2ff; }
+.field { margin-bottom:18px; }
 textarea, input {
   width:100%;
   border:none;
@@ -35,95 +31,13 @@ textarea, input {
   color:#fff;
   font-size:14px;
 }
-textarea {
-  min-height:140px;
-  resize:none;
-  font-family:Consolas,monospace;
-}
-/* دکمه‌های Liquid Metal */
-.liquid-btn, .action-btn {
-  background:linear-gradient(145deg, #2a2f3f, #1a1d28);
-  border:none;
-  border-radius:50%;
-  box-shadow:0 6px 20px rgba(0,0,0,0.6), inset 0 3px 12px rgba(255,255,255,0.15), inset 0 -3px 12px rgba(0,0,0,0.4);
-  cursor:pointer;
-  color:#fff;
-  transition: all 0.3s ease;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  animation: pulse 4s infinite ease-in-out;
-}
-.liquid-btn:hover, .action-btn:hover {
-  transform:scale(1.15);
-  background:linear-gradient(145deg, #3a4055, #252a38);
-  box-shadow:0 10px 30px rgba(76,194,255,0.5), inset 0 4px 15px rgba(76,194,255,0.3);
-}
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 6px 20px rgba(0,0,0,0.6), inset 0 3px 12px rgba(255,255,255,0.15); }
-  50% { box-shadow: 0 8px 25px rgba(76,194,255,0.2), inset 0 4px 15px rgba(255,255,255,0.2); }
-}
-.action-group { display: flex; flex-direction: column; align-items: center; margin: 16px 0; }
-.action-btn { width:80px; height:80px; font-size:20px; font-weight:bold; }
-.eye-group { display: flex; justify-content: flex-end; margin-bottom: 8px; }
-.liquid-btn { width:50px; height:50px; font-size:24px; }
-/* رادیو باتن‌ها */
-.mode-selector { display: flex; justify-content: center; gap: 50px; margin: 20px 0; font-size: 15px; }
-.mode-option { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-.mode-option input[type="radio"] {
-  appearance: none;
-  width: 24px;
-  height: 24px;
-  border: 3px solid #555;
-  border-radius: 50%;
-  background: transparent;
-  position: relative;
-  transition: all 0.3s;
-}
-.mode-option input[type="radio"]:checked { border-color: #4cc2ff; }
-.mode-option input[type="radio"]::before {
-  content: "";
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  background: #4cc2ff;
-  border-radius: 50%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  transition: transform 0.3s;
-}
-.mode-option input[type="radio"]:checked::before { transform: translate(-50%, -50%) scale(1); }
-.buttons { display:flex; gap:14px; margin:24px 0; }
-button {
-  flex:1;
-  padding:14px;
-  border:none;
-  border-radius:16px;
-  font-size:15px;
-  font-weight:bold;
-  color:#fff;
-  background:#4cc2ff;
-}
-#decryptBtn { background:#ff4c4c; }
-.help { margin-top: 30px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 16px; font-size: 13px; line-height: 1.6; opacity: 0.9; }
-.help h3 { text-align: center; margin: 12px 0 8px; }
-footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
-.note.warning {
-  color:#ff4444;
-  border:1px solid #ff4444;
-  background:rgba(255,68,68,0.1);
-  padding:12px;
-  border-radius:12px;
-  margin-top:10px;
-  font-size:13px;
-}
+textarea { min-height:140px; resize:none; font-family:Consolas,monospace; }
 /* منوی همبرگری */
 .hamburger {
   position:fixed;
   top:20px;
   right:20px;
-  z-index:1000;
+  z-index:1001;
   width:50px;
   height:50px;
   background:linear-gradient(145deg, #2a2f3f, #1a1d28);
@@ -152,11 +66,12 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   right:-300px;
   width:280px;
   height:100%;
-  background:rgba(10,13,23,0.95);
+  background:rgba(10,13,23,0.98);
   backdrop-filter:blur(20px);
-  z-index:999;
+  z-index:1000;
   transition:right 0.4s ease;
-  padding:80px 20px 20px;
+  padding:90px 20px 20px;
+  overflow-y:auto;
 }
 .sidebar.active { right:0; }
 .sidebar-item {
@@ -192,7 +107,6 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   background:rgba(255,255,255,0.1);
   position:relative;
   cursor:pointer;
-  transition: background 0.3s;
 }
 .message.sent {
   margin-left:auto;
@@ -202,34 +116,8 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   margin-right:auto;
   background:rgba(255,255,255,0.15);
 }
-.message-user {
-  font-size:12px;
-  opacity:0.8;
-  margin-bottom:4px;
-}
-.message-time {
-  font-size:11px;
-  opacity:0.7;
-  margin-top:6px;
-  text-align:left;
-}
-.message-tick {
-  font-size:12px;
-  margin-right:6px;
-}
-.tick-sent { color:#ccc; }
-.tick-read { color:#fff; font-weight:bold; }
-/* ریپلای */
-.reply-box {
-  border-right:4px solid #4cc2ff;
-  padding-right:10px;
-  margin-bottom:8px;
-  opacity:0.8;
-  font-size:13px;
-  cursor:pointer;
-}
-.reply-user { font-weight:bold; font-size:12px; }
-.reply-text { opacity:0.8; }
+.message-user { font-size:12px; opacity:0.8; margin-bottom:4px; }
+.message-time { font-size:11px; opacity:0.7; margin-top:6px; text-align:left; }
 /* نوار ورودی */
 .message-input-group {
   position:fixed;
@@ -265,22 +153,6 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   justify-content:center;
   box-shadow:0 5px 25px rgba(76,194,255,0.8);
 }
-/* فضای کافی برای نوار پایین */
-#chat-page .card {
-  padding-bottom:90px;
-}
-/* صفحه انتظار */
-.waiting-page { text-align:center; padding:60px 20px; }
-.loader {
-  width:100px;
-  height:100px;
-  border:10px solid rgba(76,194,255,0.2);
-  border-top:10px solid #4cc2ff;
-  border-radius:50%;
-  animation: spin 1.2s linear infinite;
-  margin:40px auto;
-}
-@keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
 /* صفحه افراد روم */
 #room-members-page .user-item {
   display:flex;
@@ -297,7 +169,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 .user-item .user-actions button.ban { background:#ff4444; }
 .user-item .user-actions button.admin { background:#50fa7b; }
 .user-item .user-actions button.unban { background:#888; color:#fff; }
-/* وضعیت آنلاین/آفلاین */
+/* وضعیت */
 .online { color:#50fa7b; font-weight:bold; }
 .offline { color:#ff6b6b; font-weight:bold; }
 .banned { color:#ff4444; font-style:italic; }
@@ -312,20 +184,28 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   margin-bottom:15px;
   cursor:pointer;
 }
+.loader {
+  width:100px;
+  height:100px;
+  border:10px solid rgba(76,194,255,0.2);
+  border-top:10px solid #4cc2ff;
+  border-radius:50%;
+  animation: spin 1.2s linear infinite;
+  margin:40px auto;
+}
+@keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
 </style>
 </head>
 <body>
 
-<!-- منوی همبرگری -->
 <div class="hamburger" id="hamburger">
   <span></span>
   <span></span>
   <span></span>
 </div>
 
-<!-- سایدبار -->
 <div class="sidebar" id="sidebar">
-  <div class="sidebar-item" data-page="home">🏠 خانه (ابزار رمزنگاری)</div>
+  <div class="sidebar-item" data-page="home">🏠 خانه (رمزنگاری)</div>
   <div class="sidebar-item" data-page="create-room">➕ ساخت روم جدید</div>
   <div class="sidebar-item" data-page="join-room">🔑 ورود به روم</div>
   <div class="sidebar-item" data-page="manage-rooms">📂 مدیریت روم‌ها</div>
@@ -340,49 +220,49 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   <!-- صفحه خانه -->
   <div class="card page active" id="home">
     <h2>Secure Vault</h2>
-    <div class="action-group">
-      <button class="action-btn" id="pasteBtn">Paste<br>📄</button>
+    <div style="text-align:center;margin:20px 0;">
+      <button style="width:80px;height:80px;border-radius:50%;background:#4cc2ff;font-size:20px;" id="pasteBtn">Paste<br>📄</button>
     </div>
-    <div class="eye-group">
-      <button class="liquid-btn" id="togglePlain">👁</button>
+    <div style="text-align:end;margin-bottom:8px;">
+      <button style="width:50px;height:50px;border-radius:50%;background:#2a2f3f;" id="togglePlain">👁</button>
     </div>
     <div class="field">
       <textarea id="plainText" placeholder="متن محرمانه را اینجا بنویسید یا پیست کنید"></textarea>
     </div>
-    <div class="mode-selector">
-      <label class="mode-option">
+    <div style="display:flex;justify-content:center;gap:50px;margin:20px 0;font-size:15px;">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
         <input type="radio" name="appMode" value="file" checked>
         <span>File</span>
       </label>
-      <label class="mode-option">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
         <input type="radio" name="appMode" value="copy">
         <span>Copy/Paste</span>
       </label>
     </div>
-    <div class="eye-group">
-      <button class="liquid-btn" id="togglePass">👁</button>
+    <div style="text-align:end;margin-bottom:8px;">
+      <button style="width:50px;height:50px;border-radius:50%;background:#2a2f3f;" id="togglePass">👁</button>
     </div>
     <div class="field">
       <input id="password" type="password" placeholder="رمز عبور">
     </div>
-    <div class="buttons">
+    <div style="display:flex;gap:14px;margin:24px 0;">
       <button id="encryptBtn">Encrypt</button>
       <button id="decryptBtn">Decrypt</button>
     </div>
     <div class="field">
       <textarea id="output" placeholder="خروجی اینجا نمایش داده می‌شود" readonly></textarea>
     </div>
-    <div class="action-group">
-      <button class="action-btn" id="copyBtn">Copy<br>📋</button>
+    <div style="text-align:center;margin:20px 0;">
+      <button style="width:80px;height:80px;border-radius:50%;background:#4cc2ff;font-size:20px;" id="copyBtn">Copy<br>📋</button>
     </div>
     <input id="fileInput" type="file" accept=".txt,.enc" hidden>
-    <div class="help">
-      <h3>📖 راهنما</h3>
+    <div style="margin-top:30px;padding:16px;background:rgba(255,255,255,0.05);border-radius:16px;font-size:13px;">
+      <h3 style="text-align:center;">راهنما</h3>
       <p><strong>File Mode:</strong> فایل دانلود/آپلود می‌شود</p>
       <p><strong>Copy/Paste Mode:</strong> توصیه شده برای گوشی</p>
       <p>اگر دکمه Paste کار نکرد: داخل باکس Long Press → Paste</p>
     </div>
-    <footer>AES-256-GCM • PBKDF2 • 100% Client-Side</footer>
+    <footer style="margin-top:16px;text-align:center;font-size:12px;opacity:.6;">AES-256-GCM • PBKDF2 • 100% Client-Side</footer>
   </div>
 
   <!-- صفحه تنظیم نام کاربری -->
@@ -392,10 +272,10 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
       <input type="text" id="usernameInput" placeholder="نام کاربری دلخواه (حداقل 3 کاراکتر)">
       <div id="usernameStatus"></div>
     </div>
-    <div class="note warning">
+    <div style="color:#ff4444;background:rgba(255,68,68,0.1);padding:12px;border-radius:12px;margin-top:10px;font-size:13px;">
       نکته: نام کاربری فقط دو بار قابل تغییر است. با دقت انتخاب کنید!
     </div>
-    <div class="buttons">
+    <div style="display:flex;gap:14px;margin:24px 0;">
       <button id="saveUsernameBtn">ذخیره نام کاربری</button>
     </div>
   </div>
@@ -407,10 +287,10 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
       <input type="text" id="newRoomId" placeholder="آیدی دلخواه روم (انگلیسی)">
       <div id="roomIdStatus"></div>
     </div>
-    <div class="note warning">
-      نکته: حداقل تعداد مجاز کاراکتر 3 است و باید کاراکتر ها انگلیسی باشند (a-z, 0-9, -, _)
+    <div style="color:#ff4444;background:rgba(255,68,68,0.1);padding:12px;border-radius:12px;margin-top:10px;font-size:13px;">
+      نکته: حداقل 3 کاراکتر، فقط انگلیسی، عدد، - و _
     </div>
-    <div class="buttons">
+    <div style="display:flex;gap:14px;margin:24px 0;">
       <button id="createRoomBtn">Create & Join</button>
     </div>
   </div>
@@ -422,7 +302,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
       <input type="text" id="joinRoomId" placeholder="آیدی روم را وارد کنید">
       <div id="joinStatus"></div>
     </div>
-    <div class="buttons">
+    <div style="display:flex;gap:14px;margin:24px 0;">
       <button id="joinRoomBtn">Join</button>
     </div>
   </div>
@@ -432,17 +312,17 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
     <h2>تنظیمات روم</h2>
     <p>روم فعلی: <strong id="currentRoomName"></strong></p>
     <p>حالت ورود:</p>
-    <div class="mode-selector">
-      <label class="mode-option">
+    <div style="display:flex;justify-content:center;gap:50px;margin:20px 0;">
+      <label style="display:flex;align-items:center;gap:10px;">
         <input type="radio" name="roomMode" value="open" checked>
-        <span>آزاد (هرکی آیدی بدونه وارد می‌شه)</span>
+        <span>آزاد</span>
       </label>
-      <label class="mode-option">
+      <label style="display:flex;align-items:center;gap:10px;">
         <input type="radio" name="roomMode" value="permission">
-        <span>با اجازه (فقط با تأیید هاست)</span>
+        <span>با اجازه</span>
       </label>
     </div>
-    <div class="buttons">
+    <div style="display:flex;gap:14px;margin:24px 0;">
       <button id="saveRoomModeBtn">ذخیره تنظیمات</button>
     </div>
     <div id="roomModeStatus"></div>
@@ -464,7 +344,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 
   <!-- صفحه انتظار -->
   <div class="card page" id="waiting-page">
-    <div class="waiting-page">
+    <div style="text-align:center;padding:60px 20px;">
       <div class="loader"></div>
       <h3>در انتظار تأیید هاست...</h3>
       <p>درخواست ورود شما ارسال شد</p>
@@ -476,7 +356,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   <div class="card page" id="manage-rooms">
     <h2>مدیریت روم‌ها</h2>
     <p>روم‌هایی که شما ساخته‌اید:</p>
-    <div id="myRoomsList" class="room-list">
+    <div id="myRoomsList">
       <p style="text-align:center;opacity:0.7;">در حال بارگذاری...</p>
     </div>
   </div>
@@ -493,10 +373,8 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 </div>
 
 <script>
-// لینک Worker
 const WORKER_URL = "https://frosty-rain-369.alijayz.workers.dev/api";
 
-// داده‌ها
 let currentRoom = null;
 let username = localStorage.getItem('username') || null;
 let usernameChanges = parseInt(localStorage.getItem('usernameChanges') || '0');
@@ -511,10 +389,16 @@ const sidebar = document.getElementById('sidebar');
 hamburger.addEventListener('click', () => {
   hamburger.classList.toggle('active');
   sidebar.classList.toggle('active');
-  document.getElementById('returnToRoomMenu').style.display = currentRoom ? 'block' : 'none';
+  updateMenuVisibility();
 });
 
-// سوئیچ صفحه
+function updateMenuVisibility() {
+  const inRoom = !!currentRoom;
+  document.getElementById('roomMembersMenu').style.display = inRoom ? 'block' : 'none';
+  document.getElementById('returnToRoomMenu').style.display = inRoom ? 'block' : 'none';
+  document.getElementById('roomSettingsMenu').style.display = (inRoom && isOwner) ? 'block' : 'none';
+}
+
 document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
   item.addEventListener('click', () => {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -526,7 +410,6 @@ document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
   });
 });
 
-// دکمه رفرش با کولداون
 document.getElementById('refreshMembersBtn').addEventListener('click', () => {
   if (refreshCooldown) return;
   refreshCooldown = true;
@@ -540,7 +423,6 @@ document.getElementById('refreshMembersBtn').addEventListener('click', () => {
   }, 10000);
 });
 
-// ارسال با Enter
 document.getElementById('messageInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
@@ -548,7 +430,6 @@ document.getElementById('messageInput').addEventListener('keydown', (e) => {
   }
 });
 
-// تنظیم نام کاربری
 document.getElementById('saveUsernameBtn').addEventListener('click', () => {
   if (usernameChanges >= 2) {
     document.getElementById('usernameStatus').innerHTML = '<p style="color:#ff6b6b;">نام کاربری دیگر قابل تغییر نیست!</p>';
@@ -567,7 +448,6 @@ document.getElementById('saveUsernameBtn').addEventListener('click', () => {
   if (usernameChanges >= 2) document.getElementById('usernameMenuItem').style.display = 'none';
 });
 
-// چک آیدی روم
 document.getElementById('newRoomId').addEventListener('input', async () => {
   const id = document.getElementById('newRoomId').value.trim().toLowerCase();
   const status = document.getElementById('roomIdStatus');
@@ -591,7 +471,6 @@ document.getElementById('newRoomId').addEventListener('input', async () => {
   }
 });
 
-// ساخت روم
 document.getElementById('createRoomBtn').addEventListener('click', async () => {
   if (!username) return alert("ابتدا نام کاربری تنظیم کنید");
   const id = document.getElementById('newRoomId').value.trim().toLowerCase();
@@ -613,7 +492,6 @@ document.getElementById('createRoomBtn').addEventListener('click', async () => {
   }
 });
 
-// جوین روم
 document.getElementById('joinRoomBtn').addEventListener('click', async () => {
   if (!username) return alert("ابتدا نام کاربری تنظیم کنید");
   const id = document.getElementById('joinRoomId').value.trim().toLowerCase();
@@ -638,7 +516,6 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
   }
 });
 
-// نمایش صفحه انتظار
 function showWaitingPage() {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('waiting-page').classList.add('active');
@@ -646,7 +523,6 @@ function showWaitingPage() {
   setInterval(checkPendingStatus, 3000);
 }
 
-// چک وضعیت درخواست
 async function checkPendingStatus() {
   if (!pendingRoomId) return;
   try {
@@ -667,20 +543,17 @@ async function checkPendingStatus() {
   }
 }
 
-// ورود به روم
 async function enterRoom(id) {
   currentRoom = id;
   pendingRoomId = null;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('chat-page').classList.add('active');
   document.getElementById('roomTitle').textContent = `روم: ${id}`;
-  document.getElementById('roomMembersMenu').style.display = 'block';
-  document.getElementById('returnToRoomMenu').style.display = 'block';
+  updateMenuVisibility();
   loadRoomData();
   setInterval(loadRoomData, 3000);
 }
 
-// لود روم
 async function loadRoomData() {
   if (!currentRoom) return;
   try {
@@ -689,13 +562,15 @@ async function loadRoomData() {
     const data = await res.json();
     if (!data.isMember) {
       currentRoom = null;
+      isOwner = false;
+      updateMenuVisibility();
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById('join-room').classList.add('active');
       document.getElementById('joinStatus').innerHTML = '<p style="color:#ff6b6b;">دسترسی شما به این روم قطع شده است</p>';
       return;
     }
     isOwner = data.isOwner;
-    document.getElementById('roomSettingsMenu').style.display = isOwner ? 'block' : 'none';
+    updateMenuVisibility();
 
     const container = document.getElementById('messages');
     container.innerHTML = '';
@@ -763,7 +638,6 @@ function scrollToMessage(index) {
   }
 }
 
-// ارسال پیام
 document.getElementById('sendBtn').addEventListener('click', async () => {
   const input = document.getElementById('messageInput');
   const text = input.value.trim();
@@ -794,7 +668,6 @@ document.getElementById('sendBtn').addEventListener('click', async () => {
   }
 });
 
-// بارگذاری افراد روم - کاملاً هماهنگ با ورکر جدید
 async function loadRoomMembers() {
   if (!currentRoom) {
     document.getElementById('roomMembersList').innerHTML = '<p style="color:#ff6b6b;">ابتدا وارد یک روم شوید</p>';
@@ -810,14 +683,12 @@ async function loadRoomMembers() {
     const admins = data.admins || [];
     const banned = data.banned || [];
 
-    // تشخیص هاست
     const ownerName = (data.members && data.members.length > 0) ? data.members[0].name : username;
     const isHost = data.isOwner || username === ownerName;
     const isAdmin = isHost || admins.includes(username);
 
     let html = '<h3 style="margin-bottom:15px;">لیست افراد روم</h3>';
 
-    // ترکیب اعضا و بن‌شده‌ها
     const allUsers = [
       ...data.members,
       ...banned.map(name => ({name, online: false}))
@@ -855,24 +726,24 @@ async function loadRoomMembers() {
   }
 }
 
-// تابع آن‌بن
 async function unbanUser(user) {
   if (confirm(`آیا ${user} را از بن خارج کنیم؟`)) {
     await manageUser('unban', user);
   }
 }
 
-// مدیریت کاربران
 async function kickUser(user) {
   if (confirm(`آیا ${user} را از روم حذف کنیم؟`)) {
     await manageUser('kick', user);
   }
 }
+
 async function banUser(user) {
   if (confirm(`آیا ${user} را بن کنیم؟`)) {
     await manageUser('ban', user);
   }
 }
+
 async function manageUser(action, user) {
   try {
     const res = await fetch(`${WORKER_URL}/manage-user`, {
@@ -909,7 +780,6 @@ async function toggleAdmin(user) {
   }
 }
 
-// ذخیره تنظیمات روم
 document.getElementById('saveRoomModeBtn').addEventListener('click', async () => {
   const mode = document.querySelector('input[name="roomMode"]:checked').value;
   try {
@@ -929,7 +799,6 @@ document.getElementById('saveRoomModeBtn').addEventListener('click', async () =>
   }
 });
 
-// بارگذاری درخواست‌های ورود
 async function loadRequests() {
   if (!currentRoom) return;
   try {
@@ -940,11 +809,11 @@ async function loadRequests() {
       let html = '';
       data.requests.forEach(user => {
         html += `
-          <div class="request-item">
+          <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.05);padding:12px;border-radius:12px;margin-bottom:10px;">
             <span>${user}</span>
-            <div class="request-actions">
-              <button class="approve" onclick="approveRequest('${user}')">تأیید</button>
-              <button class="reject" onclick="rejectRequest('${user}')">رد</button>
+            <div>
+              <button style="background:#50fa7b;margin-left:8px;" onclick="approveRequest('${user}')">تأیید</button>
+              <button style="background:#ff4444;" onclick="rejectRequest('${user}')">رد</button>
             </div>
           </div>
         `;
@@ -958,7 +827,6 @@ async function loadRequests() {
   }
 }
 
-// تأیید/رد درخواست
 async function approveRequest(user) {
   try {
     const res = await fetch(`${WORKER_URL}/approve-request`, {
@@ -970,6 +838,7 @@ async function approveRequest(user) {
     if (data.success) loadRequests();
   } catch { alert("خطا"); }
 }
+
 async function rejectRequest(user) {
   try {
     const res = await fetch(`${WORKER_URL}/reject-request`, {
@@ -982,7 +851,6 @@ async function rejectRequest(user) {
   } catch { alert("خطا"); }
 }
 
-// مدیریت روم‌ها
 async function loadMyRooms() {
   if (!username) {
     document.getElementById('myRoomsList').innerHTML = '<p style="color:#ff6b6b;">ابتدا نام کاربری تنظیم کنید</p>';
@@ -1002,10 +870,10 @@ async function loadMyRooms() {
     let html = '';
     rooms.forEach(room => {
       html += `
-        <div class="room-item">
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.05);padding:12px;border-radius:12px;margin-bottom:10px;">
           <span>${room}</span>
-          <div class="room-actions">
-            <button onclick="editRoomName('${room}')">ویرایش</button>
+          <div>
+            <button style="background:#4cc2ff;margin-left:8px;" onclick="editRoomName('${room}')">ویرایش</button>
             <button style="background:#ff4444;" onclick="deleteRoom('${room}')">حذف</button>
           </div>
         </div>
@@ -1060,6 +928,7 @@ async function deleteRoom(roomId) {
       loadMyRooms();
       if (currentRoom === roomId) {
         currentRoom = null;
+        updateMenuVisibility();
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById('home').classList.add('active');
       }
@@ -1186,6 +1055,9 @@ fileInput.addEventListener('change', async () => {
   }
   fileInput.value = "";
 });
+
+// بروزرسانی منو در لود صفحه
+window.addEventListener('load', updateMenuVisibility);
 </script>
 </body>
 </html>
