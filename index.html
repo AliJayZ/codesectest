@@ -230,7 +230,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 }
 .reply-user { font-weight:bold; font-size:12px; }
 .reply-text { opacity:0.8; }
-/* نوار ورودی چت جدید مثل تلگرام */
+/* نوار ورودی چت مثل تلگرام */
 .message-input-group {
   display:flex;
   align-items:center;
@@ -260,7 +260,6 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   outline:none;
   color:#fff;
   font-size:15px;
-  padding:0;
 }
 #sendBtn {
   width:40px;
@@ -355,6 +354,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   <div class="sidebar-item" data-page="manage-rooms">📂 مدیریت روم‌ها</div>
   <div class="sidebar-item" data-page="room-settings-page" id="roomSettingsMenu" style="display:none;">⚙️ تنظیمات روم</div>
   <div class="sidebar-item" data-page="room-members-page" id="roomMembersMenu" style="display:none;">👥 افراد روم</div>
+  <div class="sidebar-item" data-page="chat-page" id="returnToRoomMenu" style="display:none;">🔙 بازگشت به روم</div>
   <div class="sidebar-item" data-page="username-page" id="usernameMenuItem">👤 تنظیم نام کاربری</div>
 </div>
 
@@ -510,6 +510,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   <!-- صفحه افراد روم -->
   <div class="card page" id="room-members-page">
     <h2>افراد روم</h2>
+    <button id="refreshMembersBtn" style="margin-bottom:15px; background:#4cc2ff; padding:10px 20px; border-radius:12px; cursor:pointer;">رفرش وضعیت</button>
     <div id="roomMembersList">
       <p style="text-align:center;opacity:0.7;">در حال بارگذاری...</p>
     </div>
@@ -528,6 +529,7 @@ let usernameChanges = parseInt(localStorage.getItem('usernameChanges') || '0');
 let isOwner = false;
 let pendingRoomId = null;
 let replyTo = null;
+let refreshCooldown = false;
 
 // منوی همبرگری
 const hamburger = document.getElementById('hamburger');
@@ -535,6 +537,7 @@ const sidebar = document.getElementById('sidebar');
 hamburger.addEventListener('click', () => {
   hamburger.classList.toggle('active');
   sidebar.classList.toggle('active');
+  document.getElementById('returnToRoomMenu').style.display = currentRoom ? 'block' : 'none';
 });
 
 // سوئیچ صفحه
@@ -677,6 +680,7 @@ async function enterRoom(id) {
   document.getElementById('chat-page').classList.add('active');
   document.getElementById('roomTitle').textContent = `روم: ${id}`;
   document.getElementById('roomMembersMenu').style.display = 'block';
+  document.getElementById('returnToRoomMenu').style.display = 'block';
   loadRoomData();
   setInterval(loadRoomData, 3000);
 }
@@ -810,22 +814,16 @@ async function loadRoomMembers() {
     const data = await res.json();
     const admins = data.admins || [];
     const isAdmin = data.isOwner || admins.includes(username);
-    const now = Date.now();
-    const ONLINE_THRESHOLD = 300000;
-
     let html = '';
     data.members.forEach(member => {
-      const isOnline = (now - (member.lastSeen || 0)) < ONLINE_THRESHOLD;
-      const isCurrentUserAdmin = admins.includes(member.name);
       html += `
         <div class="user-item">
           <span>${member.name}</span>
-          <span class="status ${isOnline ? 'online' : 'offline'}">${isOnline ? 'آنلاین' : 'آفلاین'}</span>
           ${isAdmin && member.name !== username ? `
             <div class="user-actions">
               <button onclick="kickUser('${member.name}')">حذف</button>
               <button class="ban" onclick="banUser('${member.name}')">بن</button>
-              <button class="admin" onclick="toggleAdmin('${member.name}')">${isCurrentUserAdmin ? 'حذف مدیر' : 'ارتقا به مدیر'}</button>
+              <button class="admin" onclick="toggleAdmin('${member.name}')">${admins.includes(member.name) ? 'حذف مدیر' : 'ارتقا به مدیر'}</button>
             </div>
           ` : ''}
         </div>
@@ -926,14 +924,14 @@ async function loadRequests() {
       });
       document.getElementById('requestsList').innerHTML = html || '<p style="opacity:0.7;">هیچ درخواستی نیست</p>';
     } else {
-      document.getElementById('requestsList').innerHTML = '<p style="opacity:0.7;">فقط هاست می‌تواند درخواست‌ها را ببیند</p>';
+      document.getElementById('requestsList').innerHTML = '<p style="color:#ff6b6b;">فقط هاست می‌تواند درخواست‌ها را ببیند</p>';
     }
   } catch {
     document.getElementById('requestsList').innerHTML = '<p style="color:#ff6b6b;">خطا در اتصال</p>';
   }
 }
 
-// تأیید/رد درخواست
+// تأیید درخواست
 async function approveRequest(user) {
   try {
     const res = await fetch(`${WORKER_URL}/approve-request`, {
@@ -942,9 +940,17 @@ async function approveRequest(user) {
       body: JSON.stringify({roomId: currentRoom, username, targetUser: user})
     });
     const data = await res.json();
-    if (data.success) loadRequests();
-  } catch { alert("خطا"); }
+    if (data.success) {
+      loadRequests();
+    } else {
+      alert(data.error || "خطا");
+    }
+  } catch {
+    alert("خطا در اتصال");
+  }
 }
+
+// رد درخواست
 async function rejectRequest(user) {
   try {
     const res = await fetch(`${WORKER_URL}/reject-request`, {
@@ -953,8 +959,14 @@ async function rejectRequest(user) {
       body: JSON.stringify({roomId: currentRoom, username, targetUser: user})
     });
     const data = await res.json();
-    if (data.success) loadRequests();
-  } catch { alert("خطا"); }
+    if (data.success) {
+      loadRequests();
+    } else {
+      alert(data.error || "خطا");
+    }
+  } catch {
+    alert("خطا در اتصال");
+  }
 }
 
 // مدیریت روم‌ها
@@ -1046,7 +1058,7 @@ async function deleteRoom(roomId) {
   }
 }
 
-// کد رمزنگاری (بدون تغییر)
+// کد رمزنگاری
 const plainText = document.getElementById("plainText");
 const password = document.getElementById("password");
 const output = document.getElementById("output");
