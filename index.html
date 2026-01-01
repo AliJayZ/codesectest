@@ -238,6 +238,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 }
 #messageInput {
   flex:1;
+  width: calc(100% - 50px);
 }
 #sendBtn {
   width:40px;
@@ -294,6 +295,22 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 .user-item .status { font-size:12px; opacity:0.7; margin-right:10px; }
 .status.online { color:#50fa7b; }
 .status.offline { color:#ff4444; }
+/* لیست درخواست‌ها */
+#requestsList {
+  margin-top:20px;
+}
+.request-item {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:rgba(255,255,255,0.05);
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:10px;
+}
+.request-actions button { padding:8px 12px; font-size:13px; margin-left:8px; }
+.request-actions button.approve { background:#50fa7b; }
+.request-actions button.reject { background:#ff4444; }
 </style>
 </head>
 <body>
@@ -427,6 +444,10 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
       <button id="saveRoomModeBtn">ذخیره تنظیمات</button>
     </div>
     <div id="roomModeStatus"></div>
+    <h3>درخواست‌های ورود</h3>
+    <div id="requestsList" class="room-list">
+      <p style="text-align:center;opacity:0.7;">در حال بارگذاری...</p>
+    </div>
   </div>
 
   <!-- صفحه چت -->
@@ -497,6 +518,7 @@ document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
     sidebar.classList.remove('active');
     if (item.dataset.page === "manage-rooms") loadMyRooms();
     if (item.dataset.page === "room-members-page") loadRoomMembers();
+    if (item.dataset.page === "room-settings-page") loadRequests();
   });
 });
 
@@ -760,13 +782,15 @@ async function loadRoomMembers() {
       return;
     }
     const data = await res.json();
-    const isAdmin = data.isOwner || (data.admins && data.admins.includes(username));
+    const admins = data.admins || [];
+    const isAdmin = data.isOwner || admins.includes(username);
     const now = Date.now();
     const ONLINE_THRESHOLD = 300000; // 5 دقیقه
 
     let html = '';
     data.members.forEach(member => {
       const isOnline = (now - (member.lastSeen || 0)) < ONLINE_THRESHOLD;
+      const isCurrentUserAdmin = admins.includes(member.name);
       html += `
         <div class="user-item">
           <span>${member.name}</span>
@@ -775,7 +799,7 @@ async function loadRoomMembers() {
             <div class="user-actions">
               <button onclick="kickUser('${member.name}')">حذف</button>
               <button class="ban" onclick="banUser('${member.name}')">بن</button>
-              <button class="admin" onclick="toggleAdmin('${member.name}')">${data.admins && data.admins.includes(member.name) ? 'حذف مدیر' : 'ارتقا به مدیر'}</button>
+              <button class="admin" onclick="toggleAdmin('${member.name}')">${isCurrentUserAdmin ? 'حذف مدیر' : 'ارتقا به مدیر'}</button>
             </div>
           ` : ''}
         </div>
@@ -853,6 +877,73 @@ document.getElementById('saveRoomModeBtn').addEventListener('click', async () =>
     alert("خطا در اتصال");
   }
 });
+
+// بارگذاری درخواست‌های ورود
+async function loadRequests() {
+  if (!currentRoom) return;
+  try {
+    const res = await fetch(`${WORKER_URL}/room-data?roomId=${currentRoom}&username=${username}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.isOwner) {
+      let html = '';
+      data.requests.forEach(user => {
+        html += `
+          <div class="request-item">
+            <span>${user}</span>
+            <div class="request-actions">
+              <button class="approve" onclick="approveRequest('${user}')">تأیید</button>
+              <button class="reject" onclick="rejectRequest('${user}')">رد</button>
+            </div>
+          </div>
+        `;
+      });
+      document.getElementById('requestsList').innerHTML = html || '<p style="opacity:0.7;">هیچ درخواستی نیست</p>';
+    } else {
+      document.getElementById('requestsList').innerHTML = '<p style="color:#ff6b6b;">فقط هاست می‌تواند درخواست‌ها را ببیند</p>';
+    }
+  } catch {
+    document.getElementById('requestsList').innerHTML = '<p style="color:#ff6b6b;">خطا در اتصال</p>';
+  }
+}
+
+// تأیید درخواست
+async function approveRequest(user) {
+  try {
+    const res = await fetch(`${WORKER_URL}/approve-request`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({roomId: currentRoom, username, targetUser: user})
+    });
+    const data = await res.json();
+    if (data.success) {
+      loadRequests();
+    } else {
+      alert(data.error || "خطا");
+    }
+  } catch {
+    alert("خطا در اتصال");
+  }
+}
+
+// رد درخواست
+async function rejectRequest(user) {
+  try {
+    const res = await fetch(`${WORKER_URL}/reject-request`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({roomId: currentRoom, username, targetUser: user})
+    });
+    const data = await res.json();
+    if (data.success) {
+      loadRequests();
+    } else {
+      alert(data.error || "خطا");
+    }
+  } catch {
+    alert("خطا در اتصال");
+  }
+}
 
 // مدیریت روم‌ها
 async function loadMyRooms() {
@@ -943,7 +1034,7 @@ async function deleteRoom(roomId) {
   }
 }
 
-// کد رمزنگاری (بدون تغییر)
+// کد رمزنگاری
 const plainText = document.getElementById("plainText");
 const password = document.getElementById("password");
 const output = document.getElementById("output");
@@ -1061,4 +1152,3 @@ fileInput.addEventListener('change', async () => {
 </script>
 </body>
 </html>
-
