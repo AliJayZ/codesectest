@@ -230,7 +230,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 }
 .reply-user { font-weight:bold; font-size:12px; }
 .reply-text { opacity:0.8; }
-/* نوار ورودی دقیقاً مثل عکس */
+/* نوار ورودی دقیقاً مثل عکس نهایی */
 .message-input-group {
   position:fixed;
   bottom:0;
@@ -242,45 +242,30 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   align-items:center;
   gap:12px;
 }
-.message-input-wrapper {
-  flex:1;
-  background:rgba(255,255,255,0.08);
-  border-radius:30px;
-  padding:0 16px;
-  display:flex;
-  align-items:center;
-}
-.attach-btn {
-  width:36px;
-  height:36px;
-  background:transparent;
-  color:#aaa;
-  font-size:20px;
-  border:none;
-  cursor:pointer;
-}
 #messageInput {
   flex:1;
-  background:transparent;
+  background:rgba(255,255,255,0.08);
   border:none;
   outline:none;
   color:#fff;
   font-size:15px;
-  padding:12px 0;
+  padding:14px 20px;
+  border-radius:40px;
 }
 #sendBtn {
-  width:44px;
-  height:44px;
+  width:50px;
+  height:50px;
   border-radius:50%;
   background:#4cc2ff;
   border:none;
   color:#fff;
-  font-size:20px;
+  font-size:22px;
   cursor:pointer;
   display:flex;
   align-items:center;
   justify-content:center;
-  box-shadow:0 2px 8px rgba(76,194,255,0.4);
+  box-shadow:0 4px 15px rgba(76,194,255,0.6);
+  flex-shrink:0;
 }
 /* فضای کافی برای نوار پایین */
 #chat-page .card {
@@ -469,10 +454,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
     <div id="roomTitle">روم: ...</div>
     <div class="chat-messages" id="messages"></div>
     <div class="message-input-group">
-      <div class="message-input-wrapper">
-        <button class="attach-btn">📎</button>
-        <input type="text" id="messageInput" placeholder="پیام خود را بنویسید...">
-      </div>
+      <input type="text" id="messageInput" placeholder="پیام خود را بنویسید...">
       <button id="sendBtn">➤</button>
     </div>
   </div>
@@ -553,6 +535,14 @@ document.getElementById('refreshMembersBtn').addEventListener('click', () => {
     document.getElementById('refreshMembersBtn').textContent = 'رفرش وضعیت';
     document.getElementById('refreshMembersBtn').disabled = false;
   }, 10000);
+});
+
+// ارسال با Enter (Shift + Enter برای خط جدید)
+document.getElementById('messageInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    document.getElementById('sendBtn').click();
+  }
 });
 
 // تنظیم نام کاربری
@@ -1046,7 +1036,7 @@ async function deleteRoom(roomId) {
   }
 }
 
-// کد رمزنگاری
+// کد رمزنگاری (بدون تغییر)
 const plainText = document.getElementById("plainText");
 const password = document.getElementById("password");
 const output = document.getElementById("output");
