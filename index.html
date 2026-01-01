@@ -292,7 +292,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   margin-bottom:10px;
 }
 .user-item span { flex:1; }
-.user-item .user-actions { display:flex; gap:8px; }
+.user-item .user-actions { display:flex; gap:8px; flex-wrap:wrap; }
 .user-item .user-actions button { padding:6px 10px; font-size:12px; background:#4cc2ff; border-radius:8px; }
 .user-item .user-actions button.ban { background:#ff4444; }
 .user-item .user-actions button.admin { background:#50fa7b; }
@@ -300,6 +300,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 /* وضعیت آنلاین/آفلاین */
 .online { color:#50fa7b; font-weight:bold; }
 .offline { color:#ff6b6b; font-weight:bold; }
+.banned { color:#ff4444; font-style:italic; }
 /* دکمه رفرش */
 #refreshMembersBtn {
   width:100%;
@@ -793,7 +794,7 @@ document.getElementById('sendBtn').addEventListener('click', async () => {
   }
 });
 
-// بارگذاری افراد روم - کاملاً اصلاح شده
+// بارگذاری افراد روم - نهایی و کامل
 async function loadRoomMembers() {
   if (!currentRoom) {
     document.getElementById('roomMembersList').innerHTML = '<p style="color:#ff6b6b;">ابتدا وارد یک روم شوید</p>';
@@ -807,41 +808,46 @@ async function loadRoomMembers() {
     }
     const data = await res.json();
     const admins = data.admins || [];
-    // تشخیص ادمین/هاست: isOwner یا در لیست admins یا اولین عضو
-    const isAdmin = data.isOwner || admins.includes(username) || (data.members && data.members.length > 0 && data.members[0].name === username);
+    const banned = data.banned || [];
 
-    let html = '<h3 style="margin-bottom:15px;">اعضای روم</h3>';
+    // تشخیص هاست (اولین عضو یا isOwner)
+    const ownerName = (data.members && data.members.length > 0) ? data.members[0].name : username;
+    const isHost = data.isOwner || username === ownerName;
+    const isAdmin = isHost || admins.includes(username);
 
-    (data.members || []).forEach(member => {
-      const statusText = member.online ? '<span class="online">● آنلاین</span>' : '<span class="offline">● آفلاین</span>';
-      const selfText = member.name === username ? ' (خودت)' : '';
+    let html = '<h3 style="margin-bottom:15px;">لیست افراد روم</h3>';
+
+    // ترکیب اعضا و بن‌شده‌ها
+    const allUsers = [
+      ...(data.members || []).map(m => ({...m, banned: false})),
+      ...banned.map(name => ({name, online: false, banned: true}))
+    ];
+
+    allUsers.forEach(user => {
+      const isBanned = user.banned;
+      const isSelf = user.name === username;
+      const isThisHost = user.name === ownerName;
+
+      const statusText = isBanned ? '<span class="banned">(بن شده)</span>' : (user.online ? '<span class="online">● آنلاین</span>' : '<span class="offline">● آفلاین</span>');
+      const selfText = isSelf ? ' (خودت)' : '';
+      const hostText = isThisHost ? ' (هاست)' : '';
+
       html += `
         <div class="user-item">
-          <span>${member.name}${selfText} ${statusText}</span>
-          ${isAdmin && member.name !== username ? `
+          <span>${user.name}${selfText}${hostText} ${statusText}</span>
+          ${isAdmin && !isSelf && !isThisHost ? `
             <div class="user-actions">
-              <button onclick="kickUser('${member.name}')">حذف</button>
-              <button class="ban" onclick="banUser('${member.name}')">بن</button>
-              <button class="admin" onclick="toggleAdmin('${member.name}')">${admins.includes(member.name) ? 'حذف مدیر' : 'مدیر کن'}</button>
+              ${!isBanned ? `
+                <button onclick="kickUser('${user.name}')">حذف</button>
+                <button class="ban" onclick="banUser('${user.name}')">بن</button>
+                <button class="admin" onclick="toggleAdmin('${user.name}')">${admins.includes(user.name) ? 'حذف مدیر' : 'مدیر کن'}</button>
+              ` : ''}
+              ${isBanned ? '<button class="unban" onclick="unbanUser('${user.name}')">آن‌بن</button>' : ''}
             </div>
           ` : ''}
         </div>
       `;
     });
-
-    if (data.banned && data.banned.length > 0 && isAdmin) {
-      html += '<h3 style="margin-top:30px;color:#ff6b6b;">بن‌شده‌ها</h3>';
-      data.banned.forEach(bannedUser => {
-        html += `
-          <div class="user-item">
-            <span>${bannedUser} (بن شده)</span>
-            <div class="user-actions">
-              <button class="unban" onclick="unbanUser('${bannedUser}')">آن‌بن</button>
-            </div>
-          </div>
-        `;
-      });
-    }
 
     document.getElementById('roomMembersList').innerHTML = html || '<p style="opacity:0.7;">هیچ عضوی نیست</p>';
   } catch (e) {
