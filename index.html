@@ -181,7 +181,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 .chat-messages {
   height:55vh;
   overflow-y:auto;
-  margin:20px 0;
+  margin:20px 0 10px 0;
   padding:10px;
 }
 .message {
@@ -267,7 +267,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 }
 /* فضای کافی برای نوار پایین */
 #chat-page .card {
-  padding-bottom:100px;
+  padding-bottom:90px;
 }
 /* صفحه انتظار */
 .waiting-page { text-align:center; padding:60px 20px; }
@@ -794,7 +794,7 @@ document.getElementById('sendBtn').addEventListener('click', async () => {
   }
 });
 
-// بارگذاری افراد روم - نهایی و کامل
+// بارگذاری افراد روم - کاملاً هماهنگ با ورکر جدید
 async function loadRoomMembers() {
   if (!currentRoom) {
     document.getElementById('roomMembersList').innerHTML = '<p style="color:#ff6b6b;">ابتدا وارد یک روم شوید</p>';
@@ -810,7 +810,7 @@ async function loadRoomMembers() {
     const admins = data.admins || [];
     const banned = data.banned || [];
 
-    // تشخیص هاست (اولین عضو یا isOwner)
+    // تشخیص هاست
     const ownerName = (data.members && data.members.length > 0) ? data.members[0].name : username;
     const isHost = data.isOwner || username === ownerName;
     const isAdmin = isHost || admins.includes(username);
@@ -819,12 +819,12 @@ async function loadRoomMembers() {
 
     // ترکیب اعضا و بن‌شده‌ها
     const allUsers = [
-      ...(data.members || []).map(m => ({...m, banned: false})),
-      ...banned.map(name => ({name, online: false, banned: true}))
+      ...data.members,
+      ...banned.map(name => ({name, online: false}))
     ];
 
     allUsers.forEach(user => {
-      const isBanned = user.banned;
+      const isBanned = banned.includes(user.name);
       const isSelf = user.name === username;
       const isThisHost = user.name === ownerName;
 
