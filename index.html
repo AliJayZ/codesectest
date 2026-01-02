@@ -171,19 +171,30 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 .sidebar-item:hover { background:rgba(76,194,255,0.2); }
 .page { display:none; }
 .page.active { display:block; }
-/* صفحه چت */
+/* صفحه چت - اصلاح کامل با flex */
+#chat-page .card {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 80px);
+  padding: 20px;
+  margin: 0;
+  border-radius: 20px 20px 0 0;
+  overflow: hidden;
+}
 #roomTitle {
   color:#4cc2ff;
   font-weight:bold;
   text-align:right;
   margin-bottom:10px;
   font-size:18px;
+  flex-shrink: 0;
 }
 .chat-messages {
-  height: calc(100vh - 220px);
-  overflow-y:auto;
-  margin:20px 0 10px 0;
-  padding:10px;
+  flex: 1;
+  overflow-y: auto;
+  margin: 0;
+  padding: 10px 0;
+  min-height: 0;
 }
 .message {
   max-width:75%;
@@ -252,7 +263,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 }
 .reply-user { font-weight:bold; font-size:12px; }
 .reply-text { opacity:0.8; }
-/* نوار ورودی */
+/* نوار ورودی - ثابت */
 .message-input-group {
   position:fixed;
   bottom:0;
@@ -286,10 +297,6 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   align-items:center;
   justify-content:center;
   box-shadow:0 5px 25px rgba(76,194,255,0.8);
-}
-/* فضای کافی برای نوار پایین */
-#chat-page .card {
-  padding-bottom:100px;
 }
 /* صفحه انتظار */
 .waiting-page { text-align:center; padding:60px 20px; }
@@ -336,13 +343,11 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 </style>
 </head>
 <body>
-<!-- منوی همبرگری -->
 <div class="hamburger" id="hamburger">
   <span></span>
   <span></span>
   <span></span>
 </div>
-<!-- سایدبار -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-item" data-page="home">🏠 خانه (ابزار رمزنگاری)</div>
   <div class="sidebar-item" data-page="create-room">➕ ساخت روم جدید</div>
@@ -354,7 +359,6 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   <div class="sidebar-item" data-page="username-page" id="usernameMenuItem">👤 تنظیم نام کاربری</div>
 </div>
 <div class="container">
-  <!-- صفحه خانه -->
   <div class="card page active" id="home">
     <h2>Secure Vault</h2>
     <div class="action-group">
@@ -401,7 +405,6 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
     </div>
     <footer>AES-256-GCM • PBKDF2 • 100% Client-Side</footer>
   </div>
-  <!-- صفحه تنظیم نام کاربری -->
   <div class="card page" id="username-page">
     <h2>تنظیم نام کاربری</h2>
     <div class="field">
@@ -415,7 +418,6 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
       <button id="saveUsernameBtn">ذخیره نام کاربری</button>
     </div>
   </div>
-  <!-- صفحه ساخت روم -->
   <div class="card page" id="create-room">
     <h2>ساخت روم جدید</h2>
     <div class="field">
@@ -429,7 +431,6 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
       <button id="createRoomBtn">Create & Join</button>
     </div>
   </div>
-  <!-- صفحه جوین روم -->
   <div class="card page" id="join-room">
     <h2>ورود به روم</h2>
     <div class="field">
@@ -440,7 +441,6 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
       <button id="joinRoomBtn">Join</button>
     </div>
   </div>
-  <!-- صفحه تنظیمات روم -->
   <div class="card page" id="room-settings-page">
     <h2>تنظیمات روم</h2>
     <p>روم فعلی: <strong id="currentRoomName"></strong></p>
@@ -464,16 +464,10 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
       <p style="text-align:center;opacity:0.7;">در حال بارگذاری...</p>
     </div>
   </div>
-  <!-- صفحه چت -->
   <div class="card page" id="chat-page">
     <div id="roomTitle">روم: ...</div>
     <div class="chat-messages" id="messages"></div>
-    <div class="message-input-group">
-      <input type="text" id="messageInput" placeholder="پیام خود را بنویسید...">
-      <button id="sendBtn">→</button>
-    </div>
   </div>
-  <!-- صفحه انتظار -->
   <div class="card page" id="waiting-page">
     <div class="waiting-page">
       <div class="loader"></div>
@@ -482,7 +476,6 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
       <p>لطفاً منتظر بمانید تا هاست درخواست شما را بررسی کند</p>
     </div>
   </div>
-  <!-- صفحه مدیریت روم‌ها -->
   <div class="card page" id="manage-rooms">
     <h2>مدیریت روم‌ها</h2>
     <p>روم‌هایی که شما ساخته‌اید:</p>
@@ -490,7 +483,6 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
       <p style="text-align:center;opacity:0.7;">در حال بارگذاری...</p>
     </div>
   </div>
-  <!-- صفحه افراد روم -->
   <div class="card page" id="room-members-page">
     <h2>افراد روم</h2>
     <button id="refreshMembersBtn">رفرش وضعیت</button>
@@ -498,6 +490,12 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
       <p style="text-align:center;opacity:0.7;">برای دیدن لیست، روی دکمه رفرش بزنید</p>
     </div>
   </div>
+</div>
+
+<!-- نوار ورودی چت - ثابت -->
+<div class="message-input-group">
+  <input type="text" id="messageInput" placeholder="پیام خود را بنویسید...">
+  <button id="sendBtn">→</button>
 </div>
 
 <script>
@@ -702,7 +700,7 @@ async function enterRoom(id) {
   setInterval(loadRoomData, 3000);
 }
 
-// لود روم - با دکمه ریپلای و اسکرول مطمئن
+// لود روم - کامل با دکمه ریپلای و اسکرول مطمئن
 async function loadRoomData() {
   if (!currentRoom) return;
   try {
@@ -742,7 +740,6 @@ async function loadRoomData() {
       const otherMembers = data.members.filter(m => m.name !== username);
       const tick = msg.user === username ? (otherMembers.length > 0 ? '<span class="message-tick tick-read">✓✓</span>' : '<span class="message-tick tick-sent">✓</span>') : '';
 
-      // دکمه ریپلای فقط برای پیام‌های دریافتی
       const replyButton = msg.user !== username ? `<div class="reply-btn" onclick="setReply(${index})">↩</div>` : '';
 
       div.innerHTML = replyButton + `
@@ -754,14 +751,12 @@ async function loadRoomData() {
         </div>
       `;
 
-      // کلیک روی پیام برای نمایش خوانندگان
       div.addEventListener('click', (e) => {
         if (e.target.classList.contains('reply-btn') || e.target.closest('.reply-box')) return;
         const readers = data.members.filter(m => m.name !== msg.user).map(m => m.name);
         alert(`خوانده شده توسط: ${readers.length > 0 ? readers.join(', ') : 'هنوز کسی نخوانده'}`);
       });
 
-      // سوایپ برای ریپلای (فقط پیام‌های خودت)
       if (msg.user === username) {
         let touchStartX = 0;
         div.addEventListener('touchstart', (e) => touchStartX = e.touches[0].clientX);
@@ -774,11 +769,9 @@ async function loadRoomData() {
       container.appendChild(div);
     });
 
-    // اسکرول مطمئن به آخر
     setTimeout(() => {
       container.scrollTop = container.scrollHeight;
     }, 100);
-
   } catch (e) {
     console.log("خطا در لود روم");
   }
@@ -792,7 +785,7 @@ function setReply(index) {
   document.getElementById('messageInput').focus();
 }
 
-// اسکرول به پیام ریپلای شده
+// اسکرول به پیام
 function scrollToMessage(index) {
   const msg = document.querySelector(`.message[data-msg-index="${index}"]`);
   if (msg) {
@@ -1226,4 +1219,3 @@ window.addEventListener('load', updateMenuVisibility);
 </script>
 </body>
 </html>
-
