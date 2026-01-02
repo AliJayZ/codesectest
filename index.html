@@ -171,7 +171,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 .sidebar-item:hover { background:rgba(76,194,255,0.2); }
 .page { display:none; }
 .page.active { display:block; }
-/* صفحه چت - اصلاح کامل با flex */
+/* صفحه چت - اصلاح نهایی برای جلوگیری از نصف شدن پیام‌ها */
 #chat-page .card {
   display: flex;
   flex-direction: column;
@@ -199,58 +199,66 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 .message {
   max-width:75%;
   margin:8px 0;
-  padding:12px;
+  padding:14px;
   border-radius:18px;
   background:rgba(255,255,255,0.1);
   position:relative;
   cursor:pointer;
   transition: background 0.3s;
-  display:flex;
-  align-items:flex-end;
-  gap:8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
 }
 .message.sent {
-  margin-left:auto;
+  align-self: flex-end;
   background:#4cc2ff;
-  flex-direction:row-reverse;
 }
 .message.received {
-  margin-right:auto;
+  align-self: flex-start;
   background:rgba(255,255,255,0.15);
+  flex-direction: row;
+  align-items: center;
 }
 .message-content {
-  flex:1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 .message-user {
   font-size:12px;
   opacity:0.8;
-  margin-bottom:4px;
+}
+.message-text {
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  line-height: 1.4;
+}
+.message-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  font-size: 11px;
+  opacity: 0.7;
 }
 .message-time {
-  font-size:11px;
-  opacity:0.7;
-  margin-top:6px;
-  text-align:left;
+  order: 2;
 }
 .message-tick {
   font-size:12px;
-  margin-right:6px;
+  order: 1;
 }
-.tick-sent { color:#ccc; }
-.tick-read { color:#fff; font-weight:bold; }
 /* دکمه ریپلای */
 .reply-btn {
-  font-size:18px;
-  opacity:0.6;
+  font-size:20px;
+  opacity:0.7;
   cursor:pointer;
-  padding:4px;
-  transition:opacity 0.3s;
+  margin-left: 8px;
 }
 .reply-btn:hover {
   opacity:1;
-}
-.message.received .reply-btn {
-  order:-1;
 }
 /* ریپلای باکس */
 .reply-box {
@@ -260,10 +268,11 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   opacity:0.8;
   font-size:13px;
   cursor:pointer;
+  width: 100%;
 }
 .reply-user { font-weight:bold; font-size:12px; }
 .reply-text { opacity:0.8; }
-/* نوار ورودی - ثابت */
+/* نوار ورودی */
 .message-input-group {
   position:fixed;
   bottom:0;
@@ -491,13 +500,10 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
     </div>
   </div>
 </div>
-
-<!-- نوار ورودی چت - ثابت -->
 <div class="message-input-group">
   <input type="text" id="messageInput" placeholder="پیام خود را بنویسید...">
   <button id="sendBtn">→</button>
 </div>
-
 <script>
 const WORKER_URL = "https://frosty-rain-369.alijayz.workers.dev/api";
 
@@ -700,7 +706,7 @@ async function enterRoom(id) {
   setInterval(loadRoomData, 3000);
 }
 
-// لود روم - کامل با دکمه ریپلای و اسکرول مطمئن
+// لود روم - کامل با اصلاح پیام‌ها
 async function loadRoomData() {
   if (!currentRoom) return;
   try {
@@ -746,8 +752,11 @@ async function loadRoomData() {
         <div class="message-content">
           ${replyHtml}
           <div class="message-user">${msg.user}</div>
-          ${msg.text}
-          <div class="message-time">${time} ${tick}</div>
+          <div class="message-text">${msg.text}</div>
+          <div class="message-meta">
+            <span class="message-tick">${tick}</span>
+            <span class="message-time">${time}</span>
+          </div>
         </div>
       `;
 
@@ -772,6 +781,7 @@ async function loadRoomData() {
     setTimeout(() => {
       container.scrollTop = container.scrollHeight;
     }, 100);
+
   } catch (e) {
     console.log("خطا در لود روم");
   }
@@ -1219,3 +1229,5 @@ window.addEventListener('load', updateMenuVisibility);
 </script>
 </body>
 </html>
+
+
