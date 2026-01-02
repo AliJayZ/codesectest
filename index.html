@@ -123,7 +123,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   position:fixed;
   top:20px;
   right:20px;
-  z-index:1000;
+  z-index:1001;
   width:50px;
   height:50px;
   background:linear-gradient(145deg, #2a2f3f, #1a1d28);
@@ -154,9 +154,10 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   height:100%;
   background:rgba(10,13,23,0.95);
   backdrop-filter:blur(20px);
-  z-index:999;
+  z-index:1000;
   transition:right 0.4s ease;
   padding:80px 20px 20px;
+  overflow-y:auto;
 }
 .sidebar.active { right:0; }
 .sidebar-item {
@@ -181,7 +182,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 .chat-messages {
   height:55vh;
   overflow-y:auto;
-  margin:20px 0;
+  margin:20px 0 10px 0;
   padding:10px;
 }
 .message {
@@ -193,14 +194,21 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   position:relative;
   cursor:pointer;
   transition: background 0.3s;
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
 }
 .message.sent {
   margin-left:auto;
   background:#4cc2ff;
+  flex-direction:row-reverse;
 }
 .message.received {
   margin-right:auto;
   background:rgba(255,255,255,0.15);
+}
+.message-content {
+  flex:1;
 }
 .message-user {
   font-size:12px;
@@ -219,7 +227,21 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 }
 .tick-sent { color:#ccc; }
 .tick-read { color:#fff; font-weight:bold; }
-/* ریپلای */
+/* دکمه ریپلای */
+.reply-btn {
+  font-size:18px;
+  opacity:0.6;
+  cursor:pointer;
+  padding:4px;
+  transition:opacity 0.3s;
+}
+.reply-btn:hover {
+  opacity:1;
+}
+.message.received .reply-btn {
+  order:-1;
+}
+/* ریپلای باکس */
 .reply-box {
   border-right:4px solid #4cc2ff;
   padding-right:10px;
@@ -464,7 +486,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   <div class="card page" id="manage-rooms">
     <h2>مدیریت روم‌ها</h2>
     <p>روم‌هایی که شما ساخته‌اید:</p>
-    <div id="myRoomsList" class="room-list">
+    <div id="myRoomsList">
       <p style="text-align:center;opacity:0.7;">در حال بارگذاری...</p>
     </div>
   </div>
@@ -477,10 +499,10 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
     </div>
   </div>
 </div>
+
 <script>
-// لینک Worker
 const WORKER_URL = "https://frosty-rain-369.alijayz.workers.dev/api";
-// داده‌ها
+
 let currentRoom = null;
 let username = localStorage.getItem('username') || null;
 let usernameChanges = parseInt(localStorage.getItem('usernameChanges') || '0');
@@ -488,16 +510,34 @@ let isOwner = false;
 let pendingRoomId = null;
 let replyTo = null;
 let refreshCooldown = false;
+
 // منوی همبرگری
 const hamburger = document.getElementById('hamburger');
 const sidebar = document.getElementById('sidebar');
-hamburger.addEventListener('click', () => {
+
+hamburger.addEventListener('click', (e) => {
+  e.stopPropagation();
   hamburger.classList.toggle('active');
   sidebar.classList.toggle('active');
-  document.getElementById('returnToRoomMenu').style.display = currentRoom ? 'block' : 'none';
-  document.getElementById('roomMembersMenu').style.display = currentRoom ? 'block' : 'none';
-  document.getElementById('roomSettingsMenu').style.display = (currentRoom && isOwner) ? 'block' : 'none';
+  updateMenuVisibility();
 });
+
+document.addEventListener('click', () => {
+  if (sidebar.classList.contains('active')) {
+    hamburger.classList.remove('active');
+    sidebar.classList.remove('active');
+  }
+});
+
+sidebar.addEventListener('click', (e) => e.stopPropagation());
+
+function updateMenuVisibility() {
+  const inRoom = !!currentRoom;
+  document.getElementById('roomMembersMenu').style.display = inRoom ? 'block' : 'none';
+  document.getElementById('returnToRoomMenu').style.display = inRoom ? 'block' : 'none';
+  document.getElementById('roomSettingsMenu').style.display = (inRoom && isOwner) ? 'block' : 'none';
+}
+
 // سوئیچ صفحه
 document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
   item.addEventListener('click', () => {
@@ -509,6 +549,7 @@ document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
     if (item.dataset.page === "room-settings-page") loadRequests();
   });
 });
+
 // دکمه رفرش با کولداون
 document.getElementById('refreshMembersBtn').addEventListener('click', () => {
   if (refreshCooldown) return;
@@ -522,6 +563,7 @@ document.getElementById('refreshMembersBtn').addEventListener('click', () => {
     document.getElementById('refreshMembersBtn').disabled = false;
   }, 10000);
 });
+
 // ارسال با Enter
 document.getElementById('messageInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {
@@ -529,6 +571,7 @@ document.getElementById('messageInput').addEventListener('keydown', (e) => {
     document.getElementById('sendBtn').click();
   }
 });
+
 // تنظیم نام کاربری
 document.getElementById('saveUsernameBtn').addEventListener('click', () => {
   if (usernameChanges >= 2) {
@@ -547,6 +590,7 @@ document.getElementById('saveUsernameBtn').addEventListener('click', () => {
   document.getElementById('usernameStatus').innerHTML = '<p style="color:#50fa7b;">نام کاربری ذخیره شد: ' + name + '</p>';
   if (usernameChanges >= 2) document.getElementById('usernameMenuItem').style.display = 'none';
 });
+
 // چک آیدی روم
 document.getElementById('newRoomId').addEventListener('input', async () => {
   const id = document.getElementById('newRoomId').value.trim().toLowerCase();
@@ -570,6 +614,7 @@ document.getElementById('newRoomId').addEventListener('input', async () => {
     status.innerHTML = '<p style="color:#ff6b6b;">خطا در اتصال</p>';
   }
 });
+
 // ساخت روم
 document.getElementById('createRoomBtn').addEventListener('click', async () => {
   if (!username) return alert("ابتدا نام کاربری تنظیم کنید");
@@ -591,6 +636,7 @@ document.getElementById('createRoomBtn').addEventListener('click', async () => {
     alert("خطا در اتصال به سرور");
   }
 });
+
 // جوین روم
 document.getElementById('joinRoomBtn').addEventListener('click', async () => {
   if (!username) return alert("ابتدا نام کاربری تنظیم کنید");
@@ -615,6 +661,7 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
     alert("خطا در اتصال به سرور");
   }
 });
+
 // نمایش صفحه انتظار
 function showWaitingPage() {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -622,6 +669,7 @@ function showWaitingPage() {
   checkPendingStatus();
   setInterval(checkPendingStatus, 3000);
 }
+
 // چک وضعیت درخواست
 async function checkPendingStatus() {
   if (!pendingRoomId) return;
@@ -642,6 +690,7 @@ async function checkPendingStatus() {
     console.log("خطا در چک وضعیت");
   }
 }
+
 // ورود به روم
 async function enterRoom(id) {
   currentRoom = id;
@@ -649,12 +698,11 @@ async function enterRoom(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('chat-page').classList.add('active');
   document.getElementById('roomTitle').textContent = `روم: ${id}`;
-  document.getElementById('roomMembersMenu').style.display = 'block';
-  document.getElementById('returnToRoomMenu').style.display = 'block';
   loadRoomData();
   setInterval(loadRoomData, 3000);
 }
-// لود روم
+
+// لود روم - با دکمه ریپلای و اسکرول مطمئن
 async function loadRoomData() {
   if (!currentRoom) return;
   try {
@@ -670,12 +718,15 @@ async function loadRoomData() {
     }
     isOwner = data.isOwner;
     document.getElementById('roomSettingsMenu').style.display = isOwner ? 'block' : 'none';
+
     const container = document.getElementById('messages');
     container.innerHTML = '';
+
     (data.messages || []).forEach((msg, index) => {
       const div = document.createElement('div');
       div.className = 'message ' + (msg.user === username ? 'sent' : 'received');
       div.dataset.msgIndex = index;
+
       let replyHtml = '';
       if (msg.replyTo !== undefined && data.messages[msg.replyTo]) {
         const orig = data.messages[msg.replyTo];
@@ -686,38 +737,62 @@ async function loadRoomData() {
           </div>
         `;
       }
+
       const time = new Date(msg.time || Date.now()).toLocaleTimeString('fa-IR', {hour: '2-digit', minute:'2-digit'});
       const otherMembers = data.members.filter(m => m.name !== username);
       const tick = msg.user === username ? (otherMembers.length > 0 ? '<span class="message-tick tick-read">✓✓</span>' : '<span class="message-tick tick-sent">✓</span>') : '';
-      div.innerHTML = replyHtml + `
-        <div class="message-user">${msg.user}</div>
-        ${msg.text}
-        <div class="message-time">${time} ${tick}</div>
+
+      // دکمه ریپلای فقط برای پیام‌های دریافتی
+      const replyButton = msg.user !== username ? `<div class="reply-btn" onclick="setReply(${index})">↩</div>` : '';
+
+      div.innerHTML = replyButton + `
+        <div class="message-content">
+          ${replyHtml}
+          <div class="message-user">${msg.user}</div>
+          ${msg.text}
+          <div class="message-time">${time} ${tick}</div>
+        </div>
       `;
-      div.addEventListener('click', () => {
+
+      // کلیک روی پیام برای نمایش خوانندگان
+      div.addEventListener('click', (e) => {
+        if (e.target.classList.contains('reply-btn') || e.target.closest('.reply-box')) return;
         const readers = data.members.filter(m => m.name !== msg.user).map(m => m.name);
         alert(`خوانده شده توسط: ${readers.length > 0 ? readers.join(', ') : 'هنوز کسی نخوانده'}`);
       });
-      let touchStartX = 0;
-      div.addEventListener('touchstart', (e) => {
-        touchStartX = e.touches[0].clientX;
-      });
-      div.addEventListener('touchend', (e) => {
-        const touchEndX = e.changedTouches[0].clientX;
-        const diff = touchStartX - touchEndX;
-        if (diff > 50) {
-          replyTo = index;
-          document.getElementById('messageInput').placeholder = 'در پاسخ به ' + msg.user + '...';
-          document.getElementById('messageInput').focus();
-        }
-      });
+
+      // سوایپ برای ریپلای (فقط پیام‌های خودت)
+      if (msg.user === username) {
+        let touchStartX = 0;
+        div.addEventListener('touchstart', (e) => touchStartX = e.touches[0].clientX);
+        div.addEventListener('touchend', (e) => {
+          const diff = touchStartX - e.changedTouches[0].clientX;
+          if (diff > 50) setReply(index);
+        });
+      }
+
       container.appendChild(div);
     });
-    container.scrollTop = container.scrollHeight;
+
+    // اسکرول مطمئن به آخر
+    setTimeout(() => {
+      container.scrollTop = container.scrollHeight;
+    }, 100);
+
   } catch (e) {
     console.log("خطا در لود روم");
   }
 }
+
+// تابع ریپلای
+function setReply(index) {
+  replyTo = index;
+  const user = document.querySelector(`.message[data-msg-index="${index}"] .message-user`).textContent;
+  document.getElementById('messageInput').placeholder = 'در پاسخ به ' + user + '...';
+  document.getElementById('messageInput').focus();
+}
+
+// اسکرول به پیام ریپلای شده
 function scrollToMessage(index) {
   const msg = document.querySelector(`.message[data-msg-index="${index}"]`);
   if (msg) {
@@ -728,6 +803,7 @@ function scrollToMessage(index) {
     }, 1000);
   }
 }
+
 // ارسال پیام
 document.getElementById('sendBtn').addEventListener('click', async () => {
   const input = document.getElementById('messageInput');
@@ -758,7 +834,8 @@ document.getElementById('sendBtn').addEventListener('click', async () => {
     alert("خطا در ارسال");
   }
 });
-// بارگذاری افراد روم - اصلاح شده برای هاست و جلوگیری از بن خود/هاست
+
+// بارگذاری افراد روم
 async function loadRoomMembers() {
   if (!currentRoom) {
     document.getElementById('roomMembersList').innerHTML = '<p style="color:#ff6b6b;">ابتدا وارد یک روم شوید</p>';
@@ -817,12 +894,8 @@ async function loadRoomMembers() {
     document.getElementById('roomMembersList').innerHTML = '<p style="color:#ff6b6b;">خطا در اتصال</p>';
   }
 }
+
 // مدیریت کاربران
-async function unbanUser(user) {
-  if (confirm(`آیا ${user} را از بن خارج کنیم؟`)) {
-    await manageUser('unban', user);
-  }
-}
 async function kickUser(user) {
   if (confirm(`آیا ${user} را از روم حذف کنیم؟`)) {
     await manageUser('kick', user);
@@ -831,6 +904,11 @@ async function kickUser(user) {
 async function banUser(user) {
   if (confirm(`آیا ${user} را بن کنیم؟`)) {
     await manageUser('ban', user);
+  }
+}
+async function unbanUser(user) {
+  if (confirm(`آیا ${user} را از بن خارج کنیم؟`)) {
+    await manageUser('unban', user);
   }
 }
 async function manageUser(action, user) {
@@ -867,6 +945,7 @@ async function toggleAdmin(user) {
     alert("خطا در اتصال");
   }
 }
+
 // ذخیره تنظیمات روم
 document.getElementById('saveRoomModeBtn').addEventListener('click', async () => {
   const mode = document.querySelector('input[name="roomMode"]:checked').value;
@@ -886,6 +965,7 @@ document.getElementById('saveRoomModeBtn').addEventListener('click', async () =>
     alert("خطا در اتصال");
   }
 });
+
 // بارگذاری درخواست‌های ورود
 async function loadRequests() {
   if (!currentRoom) return;
@@ -914,6 +994,7 @@ async function loadRequests() {
     document.getElementById('requestsList').innerHTML = '<p style="color:#ff6b6b;">خطا در اتصال</p>';
   }
 }
+
 // تأیید/رد درخواست
 async function approveRequest(user) {
   try {
@@ -937,6 +1018,7 @@ async function rejectRequest(user) {
     if (data.success) loadRequests();
   } catch { alert("خطا"); }
 }
+
 // مدیریت روم‌ها
 async function loadMyRooms() {
   if (!username) {
@@ -1023,7 +1105,8 @@ async function deleteRoom(roomId) {
     alert("خطا در اتصال");
   }
 }
-// دکمه‌های چشم صفحه خانه
+
+// دکمه‌های چشم
 document.getElementById('togglePlain').addEventListener('click', () => {
   const textarea = document.getElementById('plainText');
   textarea.style.webkitTextSecurity = textarea.style.webkitTextSecurity === 'disc' ? '' : 'disc';
@@ -1032,6 +1115,7 @@ document.getElementById('togglePass').addEventListener('click', () => {
   const pass = document.getElementById('password');
   pass.type = pass.type === 'password' ? 'text' : 'password';
 });
+
 // Paste و Copy
 document.getElementById('pasteBtn').addEventListener('click', async () => {
   try {
@@ -1049,11 +1133,13 @@ document.getElementById('copyBtn').addEventListener('click', () => {
   document.execCommand('copy');
   alert("کپی شد!");
 });
+
 // رمزنگاری
 const plainText = document.getElementById("plainText");
 const password = document.getElementById("password");
 const output = document.getElementById("output");
 const fileInput = document.getElementById("fileInput");
+
 async function deriveKey(pass, salt) {
   const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"]);
   return crypto.subtle.deriveKey(
@@ -1135,6 +1221,8 @@ fileInput.addEventListener('change', async () => {
   }
   fileInput.value = "";
 });
+
+window.addEventListener('load', updateMenuVisibility);
 </script>
 </body>
 </html>
