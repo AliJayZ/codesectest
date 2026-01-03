@@ -14,6 +14,11 @@ body {
   background:#0b0e17;
   font-family:Tahoma,sans-serif;
   color:#fff;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 .container { max-width:720px; margin:auto; padding:20px; }
 .card {
@@ -171,12 +176,12 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 .sidebar-item:hover { background:rgba(76,194,255,0.2); }
 .page { display:none; }
 .page.active { display:block; }
-/* صفحه چت - اصلاح نهایی برای جلوگیری از نصف شدن پیام‌ها */
+/* صفحه چت */
 #chat-page .card {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 80px);
-  padding: 20px;
+  height: calc(100vh - 40px);
+  padding: 0;
   margin: 0;
   border-radius: 20px 20px 0 0;
   overflow: hidden;
@@ -184,30 +189,28 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 #roomTitle {
   color:#4cc2ff;
   font-weight:bold;
-  text-align:right;
-  margin-bottom:10px;
+  text-align:center;
   font-size:18px;
+  padding:20px;
   flex-shrink: 0;
+  background:rgba(255,255,255,0.05);
 }
 .chat-messages {
   flex: 1;
   overflow-y: auto;
-  margin: 0;
-  padding: 10px 0;
-  min-height: 0;
+  padding: 10px 20px 100px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .message {
   max-width:75%;
-  margin:8px 0;
   padding:14px;
   border-radius:18px;
   background:rgba(255,255,255,0.1);
-  position:relative;
-  cursor:pointer;
-  transition: background 0.3s;
+  align-self: flex-start;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: 6px;
 }
 .message.sent {
@@ -239,16 +242,11 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
   font-size: 11px;
   opacity: 0.7;
 }
-.message-time {
-  order: 2;
-}
 .message-tick {
   font-size:12px;
-  order: 1;
 }
 /* دکمه ریپلای */
 .reply-btn {
@@ -272,7 +270,7 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 }
 .reply-user { font-weight:bold; font-size:12px; }
 .reply-text { opacity:0.8; }
-/* نوار ورودی */
+/* نوار ورودی - دکمه سمت چپ */
 .message-input-group {
   position:fixed;
   bottom:0;
@@ -280,8 +278,13 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   right:0;
   background:#0b0e17;
   padding:14px 16px;
-  display:flex;
+  display:none;
   align-items:center;
+  gap:12px;
+  z-index:999;
+}
+.message-input-group.visible {
+  display:flex;
 }
 #messageInput {
   flex:1;
@@ -306,7 +309,27 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
   align-items:center;
   justify-content:center;
   box-shadow:0 5px 25px rgba(76,194,255,0.8);
+  flex-shrink: 0;
 }
+/* صفحه افراد روم - عنوان با قابلیت کپی */
+#room-members-page h2 {
+  cursor:pointer;
+  color:#4cc2ff;
+  font-weight:bold;
+}
+#room-members-page h2::after {
+  content: " (کلیک برای کپی آیدی)";
+  font-size:12px;
+  opacity:0.7;
+}
+/* وضعیت آنلاین/آفلاین */
+.online { color:#50fa7b; font-weight:bold; }
+.offline { color:#ff6b6b; font-weight:bold; }
+/* دکمه‌های مدیریت */
+.user-item .user-actions button { padding:6px 10px; font-size:12px; border-radius:8px; }
+.user-item .user-actions button.ban { background:#ff4444; color:#fff; }
+.user-item .user-actions button.admin { background:#50fa7b; color:#fff; }
+.user-item .user-actions button.unban { background:#888; color:#fff; }
 /* صفحه انتظار */
 .waiting-page { text-align:center; padding:60px 20px; }
 .loader {
@@ -331,14 +354,6 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
 }
 .user-item span { flex:1; }
 .user-item .user-actions { display:flex; gap:8px; }
-.user-item .user-actions button { padding:6px 10px; font-size:12px; background:#4cc2ff; border-radius:8px; }
-.user-item .user-actions button.ban { background:#ff4444; }
-.user-item .user-actions button.admin { background:#50fa7b; }
-.user-item .user-actions button.unban { background:#888; color:#fff; }
-/* وضعیت آنلاین/آفلاین */
-.online { color:#50fa7b; font-weight:bold; }
-.offline { color:#ff6b6b; font-weight:bold; }
-/* دکمه رفرش */
 #refreshMembersBtn {
   width:100%;
   padding:12px;
@@ -493,17 +508,20 @@ footer { margin-top:16px; text-align:center; font-size:12px; opacity:.6; }
     </div>
   </div>
   <div class="card page" id="room-members-page">
-    <h2>افراد روم</h2>
+    <h2 id="membersRoomTitle">افراد روم</h2>
     <button id="refreshMembersBtn">رفرش وضعیت</button>
     <div id="roomMembersList">
       <p style="text-align:center;opacity:0.7;">برای دیدن لیست، روی دکمه رفرش بزنید</p>
     </div>
   </div>
 </div>
+
+<!-- نوار ورودی -->
 <div class="message-input-group">
-  <input type="text" id="messageInput" placeholder="پیام خود را بنویسید...">
   <button id="sendBtn">→</button>
+  <input type="text" id="messageInput" placeholder="پیام خود را بنویسید...">
 </div>
+
 <script>
 const WORKER_URL = "https://frosty-rain-369.alijayz.workers.dev/api";
 
@@ -514,6 +532,36 @@ let isOwner = false;
 let pendingRoomId = null;
 let replyTo = null;
 let refreshCooldown = false;
+
+// جلوگیری از اسکرین‌شات و انتخاب متن
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  if (e.key === 'PrintScreen' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'p') || (e.ctrlKey && e.key === 's')) {
+    e.preventDefault();
+    alert('این عملیات غیرفعال است!');
+  }
+});
+
+// کپی آیدی روم با کلیک روی عنوان در صفحه افراد روم
+document.getElementById('membersRoomTitle').addEventListener('click', () => {
+  if (currentRoom) {
+    navigator.clipboard.writeText(currentRoom).then(() => {
+      alert('آیدی روم کپی شد: ' + currentRoom);
+    }).catch(() => {
+      prompt('آیدی روم (کپی دستی):', currentRoom);
+    });
+  }
+});
+
+// کنترل نمایش نوار ورودی
+function toggleInputVisibility(show) {
+  const inputGroup = document.querySelector('.message-input-group');
+  if (show) {
+    inputGroup.classList.add('visible');
+  } else {
+    inputGroup.classList.remove('visible');
+  }
+}
 
 // منوی همبرگری
 const hamburger = document.getElementById('hamburger');
@@ -549,8 +597,12 @@ document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
     document.getElementById(item.dataset.page).classList.add('active');
     hamburger.classList.remove('active');
     sidebar.classList.remove('active');
+    
+    toggleInputVisibility(item.dataset.page === "chat-page");
+    
     if (item.dataset.page === "manage-rooms") loadMyRooms();
     if (item.dataset.page === "room-settings-page") loadRequests();
+    if (item.dataset.page === "room-members-page") loadRoomMembers();
   });
 });
 
@@ -702,11 +754,12 @@ async function enterRoom(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('chat-page').classList.add('active');
   document.getElementById('roomTitle').textContent = `روم: ${id}`;
+  toggleInputVisibility(true);
   loadRoomData();
   setInterval(loadRoomData, 3000);
 }
 
-// لود روم - کامل با اصلاح پیام‌ها
+// لود روم - همیشه اسکرول به پایین
 async function loadRoomData() {
   if (!currentRoom) return;
   try {
@@ -715,6 +768,7 @@ async function loadRoomData() {
     const data = await res.json();
     if (!data.isMember) {
       currentRoom = null;
+      toggleInputVisibility(false);
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById('join-room').classList.add('active');
       document.getElementById('joinStatus').innerHTML = '<p style="color:#ff6b6b;">دسترسی شما به این روم قطع شده است</p>';
@@ -778,9 +832,8 @@ async function loadRoomData() {
       container.appendChild(div);
     });
 
-    setTimeout(() => {
-      container.scrollTop = container.scrollHeight;
-    }, 100);
+    // همیشه اسکرول به پایین
+    container.scrollTop = container.scrollHeight;
 
   } catch (e) {
     console.log("خطا در لود روم");
@@ -1100,6 +1153,7 @@ async function deleteRoom(roomId) {
         currentRoom = null;
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById('home').classList.add('active');
+        toggleInputVisibility(false);
       }
     } else {
       alert(data.error || "خطا در حذف روم");
@@ -1225,9 +1279,10 @@ fileInput.addEventListener('change', async () => {
   fileInput.value = "";
 });
 
-window.addEventListener('load', updateMenuVisibility);
+window.addEventListener('load', () => {
+  updateMenuVisibility();
+  toggleInputVisibility(false);
+});
 </script>
 </body>
 </html>
-
-
